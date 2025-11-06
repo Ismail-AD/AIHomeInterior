@@ -67,6 +67,11 @@ kotlin {
             implementation(libs.coil.svg)
             implementation(compose.components.resources)
             implementation(libs.compose.beforeafter)
+            implementation(libs.compottie)
+            implementation(libs.compottie.lite)
+            implementation(libs.compottie.resources)
+            implementation(libs.compottie.dot)
+            implementation(libs.compottie.network)
         }
         commonTest.dependencies {
             implementation(libs.kotlin.test)

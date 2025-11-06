@@ -26,7 +26,9 @@ import org.yourappdev.homeinterior.ui.BottomBarScreen.BaseBottomBarScreen
 import org.yourappdev.homeinterior.ui.Create.CreateScreen
 import org.yourappdev.homeinterior.ui.Files.CreateEditScreen
 import org.yourappdev.homeinterior.ui.Files.FilesScreen
+import org.yourappdev.homeinterior.ui.Generate.AboutToGenerateScreen
 import org.yourappdev.homeinterior.ui.Generate.BaseAddScreen
+import org.yourappdev.homeinterior.ui.Generate.LoadingScreen
 import org.yourappdev.homeinterior.ui.OnBoarding.BaseScreen
 import org.yourappdev.homeinterior.ui.OnBoarding.SplashScreen
 import org.yourappdev.homeinterior.ui.theme.AppTypography
@@ -37,7 +39,7 @@ fun App() {
 
     val backStack = remember { mutableStateListOf<Any>(Routes.BaseAppScreen) }
     MaterialTheme(typography = AppTypography()) {
-        BaseAddScreen()
+        LoadingScreen()
 //        NavDisplay(
 //            backStack = backStack,
 //            entryProvider = { key ->

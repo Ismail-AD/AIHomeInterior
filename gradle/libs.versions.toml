@@ -18,8 +18,10 @@ junit = "4.13.2"
 kotlin = "2.2.20"
 kotlinx-coroutines = "1.10.2"
 kotlinxDatetime = "0.7.1"
+compottie="2.0.2"
 
 
+lottieCompose = "6.7.1"
 nav3Core = "1.0.0-beta01"
 lifecycleViewmodelNav3 = "2.10.0-beta01"
 kotlinSerialization = "2.1.21"
@@ -53,6 +55,15 @@ androidx-lifecycle-viewmodel-navigation3 = { module = "androidx.lifecycle:lifecy
 kotlinx-serialization-core = { module = "org.jetbrains.kotlinx:kotlinx-serialization-core", version.ref = "kotlinxSerializationCore" }
 
 androidx-material3-adaptive-navigation3 = { group = "androidx.compose.material3.adaptive", name = "adaptive-navigation3", version.ref = "material3AdaptiveNav3" }
+lottie-compose = { module = "com.airbnb.android:lottie-compose", version.ref = "lottieCompose" }
+
+compottie = { module = "io.github.alexzhirkevich:compottie", version.ref = "compottie" }
+compottie-lite = { module = "io.github.alexzhirkevich:compottie-lite", version.ref = "compottie" }
+compottie-dot = { module = "io.github.alexzhirkevich:compottie-dot", version.ref = "compottie" }
+compottie-network = { module = "io.github.alexzhirkevich:compottie-network", version.ref = "compottie" }
+compottie-resources = { module = "io.github.alexzhirkevich:compottie-resources", version.ref = "compottie" }
+
+
 
 
 [plugins]

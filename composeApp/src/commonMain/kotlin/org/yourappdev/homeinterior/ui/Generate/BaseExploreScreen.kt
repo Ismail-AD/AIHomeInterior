@@ -1,8 +1,14 @@
 package org.yourappdev.homeinterior.ui.Generate
 
+import androidx.compose.animation.animateColorAsState
+import androidx.compose.animation.animateContentSize
+import androidx.compose.animation.core.Spring
+import androidx.compose.animation.core.spring
+import androidx.compose.animation.core.tween
 import androidx.compose.foundation.Image
 import androidx.compose.foundation.background
 import androidx.compose.foundation.border
+import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
@@ -17,12 +23,17 @@ import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.layout.statusBarsPadding
 import androidx.compose.foundation.layout.width
+import androidx.compose.foundation.pager.HorizontalPager
+import androidx.compose.foundation.pager.rememberPagerState
+import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material3.Button
 import androidx.compose.material3.ButtonDefaults
 import androidx.compose.material3.Scaffold
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.getValue
+import androidx.compose.runtime.rememberCoroutineScope
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
@@ -36,28 +47,40 @@ import homeinterior.composeapp.generated.resources.Res
 import homeinterior.composeapp.generated.resources.arrow_back_
 import homeinterior.composeapp.generated.resources.close
 import homeinterior.composeapp.generated.resources.sofa
+import kotlinx.coroutines.launch
 import org.jetbrains.compose.resources.painterResource
 import org.yourappdev.homeinterior.ui.Files.ProBadge
 
 @Composable
-fun BaseAddScreen() {
+fun BaseAddScreen(onCloseClick: () -> Unit = {}) {
+    val state = rememberPagerState(pageCount = { 4 })
+    val scope = rememberCoroutineScope()
+    val currentPage = state.currentPage
+    val targetPage = state.targetPage
+    val pageOffset = state.currentPageOffsetFraction
     Scaffold(
         modifier = Modifier
             .fillMaxSize()
             .background(Color.White).statusBarsPadding(),
         bottomBar = {
-            Box(modifier = Modifier.fillMaxWidth().offset(y = (-10).dp), contentAlignment = Alignment.Center) {
+            Box(modifier = Modifier.fillMaxWidth().offset(y = (-30).dp), contentAlignment = Alignment.Center) {
                 Button(
-                    onClick = { },
+                    onClick = {
+                        scope.launch {
+                            if (currentPage < 3) {
+                                state.animateScrollToPage(page = state.currentPage + 1)
+                            }
+                        }
+                    },
                     modifier = Modifier
                         .fillMaxWidth(0.7f)
                         .height(56.dp),
                     shape = RoundedCornerShape(39.dp),
                     colors = ButtonDefaults.buttonColors(
-                        containerColor = Color(0xFFFCFCFC),
-                        contentColor = Color(0xFF828282)
+                        containerColor = Color(0xFFA3B18A),
+                        contentColor = Color(0xFFF8F8F8)
                     ),
-                    border = androidx.compose.foundation.BorderStroke(1.dp, Color(0xFFE0DADA))
+                    border = androidx.compose.foundation.BorderStroke(1.dp, Color(0xFF96A47D))
                 ) {
                     Text(
                         text = "Next",
@@ -75,70 +98,141 @@ fun BaseAddScreen() {
             Color(0xFFD2F7BD)
         )
 
+
         Column(
             modifier = Modifier
-                .fillMaxSize()
+                .fillMaxSize().background(Color.White)
         ) {
 
-            TopNavigationBar(gradientColors)
+            TopNavigationBar(gradientColors, state.currentPage, onCloseClick = {
+                onCloseClick()
+            }) {
+                scope.launch {
+                    state.animateScrollToPage(page = state.currentPage - 1)
+                }
+            }
 
             Spacer(modifier = Modifier.height(24.dp))
 
-            ProgressIndicator()
+            ProgressIndicator(
+                state.pageCount,
+                currentPage = currentPage,
+                targetPage = targetPage,
+                pageOffset = pageOffset.coerceIn(0f, 1f)
+            )
 
-            RoomTypeSelection()
-//            FirstPage()
+            Spacer(modifier = Modifier.height(20.dp))
+            HorizontalPager(state = state) { page ->
+                when (page) {
+                    0 -> {
+                        FirstPage()
+                    }
 
-//            HorizontalPager()
+                    1 -> {
+                        RoomTypeSelection()
+                    }
+
+                    2 -> {
+                        StyleSelectionScreen()
+                    }
+
+                    3 -> {
+                        ColorPaletteSelectionScreen()
+                    }
+
+                }
+            }
+
         }
     }
 }
 
 
 @Composable
-private fun TopNavigationBar(gradientColors: List<Color>) {
+private fun TopNavigationBar(
+    gradientColors: List<Color>,
+    currentPage: Int,
+    onCloseClick: () -> Unit = {},
+    onBackClick: () -> Unit = {}
+) {
     Row(
         modifier = Modifier
             .fillMaxWidth()
-            .padding(horizontal = 25.dp),
+            .padding(start = 25.dp, end = 25.dp, top = 15.dp),
         horizontalArrangement = Arrangement.SpaceBetween,
         verticalAlignment = Alignment.CenterVertically
     ) {
-        ProBadge(gradientColors)
+        if (currentPage > 0) {
+            Box(modifier = Modifier.fillMaxWidth(0.2f)) {
+                Box(
+                    modifier = Modifier
+                        .size(32.dp)
+                        .clip(CircleShape)
+                        .clickable { onBackClick() },
+                    contentAlignment = Alignment.Center
+                ) {
+                    Image(
+                        painter = painterResource(Res.drawable.arrow_back_),
+                        colorFilter = ColorFilter.tint(color = Color(0xFFB2B0B0)),
+                        contentDescription = "Back",
+                        modifier = Modifier
+                            .size(18.dp)
+                    )
+                }
+            }
+        } else {
+            ProBadge(gradientColors)
+        }
         Text(
-            text = "Step 2/4",
+            text = "Step ${currentPage + 1}/4",
             fontSize = 17.sp,
             fontWeight = FontWeight.Medium,
             color = Color(0xFF9C9C9C),
-            modifier = Modifier.padding(end = 20.dp)
+            modifier = Modifier.padding(end = 40.dp)
         )
-        Image(
-            painter = painterResource(Res.drawable.close),
-            contentDescription = "back",
-            modifier = Modifier.size(24.dp),
-            colorFilter = ColorFilter.tint(Color(0xFFB2B0B0))
-        )
+        Box(modifier = Modifier.clip(CircleShape).clickable {
+            onCloseClick()
+        }, contentAlignment = Alignment.Center) {
+            Image(
+                painter = painterResource(Res.drawable.close),
+                contentDescription = "back",
+                modifier = Modifier.size(24.dp),
+                colorFilter = ColorFilter.tint(Color(0xFFB2B0B0))
+            )
+        }
     }
 }
 
 @Composable
-private fun ProgressIndicator() {
-    Row(
+private fun ProgressIndicator(pageCount: Int, currentPage: Int, targetPage: Int, pageOffset: Float) {
+    Box(
         modifier = Modifier
-            .fillMaxWidth()
-            .padding(horizontal = 118.dp),
-        horizontalArrangement = Arrangement.spacedBy(8.dp)
+            .fillMaxWidth(), contentAlignment = Alignment.Center
     ) {
-        repeat(4) { index ->
-            Box(
-                modifier = Modifier
-                    .width(45.dp)
-                    .height(3.dp)
-                    .clip(RoundedCornerShape(4.dp))
-                    .background(
-                        if (index == 0) Color(0xFFA3B18A) else Color(0xFFE4E2E2)
-                    )
-            )
+        Row(
+            horizontalArrangement = Arrangement.spacedBy(8.dp)
+        ) {
+            repeat(pageCount) { index ->
+                val progress = when {
+                    index < currentPage -> 1f
+                    index == currentPage -> 1f - pageOffset
+                    index == targetPage && pageOffset > 0 -> pageOffset
+                    else -> 0f
+                }
+
+                val color by animateColorAsState(
+                    targetValue = if (progress > 0) Color(0xFFA3B18A) else Color(0xFFE4E2E2),
+                    animationSpec = tween(durationMillis = 300)
+                )
+
+                Box(
+                    modifier = Modifier
+                        .width(45.dp)
+                        .height(3.dp)
+                        .clip(RoundedCornerShape(4.dp))
+                        .background(color)
+                )
+            }
         }
     }
 }

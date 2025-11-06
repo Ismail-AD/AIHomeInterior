@@ -52,6 +52,7 @@ import org.yourappdev.homeinterior.ui.Create.CreateScreen
 import org.yourappdev.homeinterior.ui.Explore.ExploreScreen
 import org.yourappdev.homeinterior.ui.Files.CreateEditScreen
 import org.yourappdev.homeinterior.ui.Files.FilesScreen
+import org.yourappdev.homeinterior.ui.Generate.BaseAddScreen
 import org.yourappdev.homeinterior.ui.OnBoarding.BaseScreen
 import org.yourappdev.homeinterior.ui.UiUtils.SlippyBar
 import org.yourappdev.homeinterior.ui.UiUtils.SlippyBarStyle
@@ -139,7 +140,7 @@ fun BaseBottomBarScreen() {
             if (shouldShowBottomBar) {
                 FloatingActionButton(
                     onClick = {
-                        // Your FAB action here
+                        backStack.add(Routes.AddScreen)
                     },
                     containerColor = Color(0xFF90EE90),
                     elevation = FloatingActionButtonDefaults.elevation(
@@ -173,6 +174,12 @@ fun BaseBottomBarScreen() {
                     is Routes.Files -> NavEntry(key) {
                         FilesScreen() {
                             backStack.add(Routes.FileEdit)
+                        }
+                    }
+
+                    is Routes.AddScreen -> NavEntry(key) {
+                        BaseAddScreen() {
+                            backStack.removeLastOrNull()
                         }
                     }
 

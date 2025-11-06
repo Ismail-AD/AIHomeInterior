@@ -1,0 +1,278 @@
+package org.yourappdev.homeinterior.ui.Generate
+
+
+import androidx.compose.animation.AnimatedVisibility
+import androidx.compose.animation.core.animateFloatAsState
+import androidx.compose.animation.core.tween
+import androidx.compose.animation.expandHorizontally
+import androidx.compose.animation.fadeIn
+import androidx.compose.animation.fadeOut
+import androidx.compose.animation.shrinkHorizontally
+import androidx.compose.foundation.Image
+import androidx.compose.foundation.background
+import androidx.compose.foundation.clickable
+import androidx.compose.foundation.interaction.MutableInteractionSource
+import androidx.compose.foundation.layout.*
+import androidx.compose.foundation.lazy.LazyColumn
+import androidx.compose.foundation.lazy.items
+import androidx.compose.foundation.shape.CircleShape
+import androidx.compose.foundation.shape.RoundedCornerShape
+import androidx.compose.foundation.text.BasicTextField
+import androidx.compose.material3.*
+import androidx.compose.runtime.*
+import androidx.compose.ui.Alignment
+import androidx.compose.ui.Modifier
+import androidx.compose.ui.draw.clip
+import androidx.compose.ui.graphics.Brush
+import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.graphics.ColorFilter
+import androidx.compose.ui.text.font.FontWeight
+import androidx.compose.ui.text.input.VisualTransformation
+import androidx.compose.ui.unit.dp
+import androidx.compose.ui.unit.sp
+import homeinterior.composeapp.generated.resources.Res
+import homeinterior.composeapp.generated.resources.close
+import homeinterior.composeapp.generated.resources.search
+import org.jetbrains.compose.resources.painterResource
+import org.yourappdev.homeinterior.ui.theme.fieldBack
+
+
+@Composable
+fun RoomTypeSelection() {
+    var selectedRoom by remember { mutableStateOf("Bedroom") }
+    val roomTypes = listOf(
+        "Bedroom",
+        "Living Room",
+        "TV Lounge",
+        "Drawing Room",
+        "Dining Room",
+        "Foyer/Entrance Hall",
+        "Guest Bedroom",
+        "Kitchen",
+        "Pantry / Store Room",
+        "Utility Room",
+        "Kids' Bedroom",
+        "Nursery",
+        "Study Room",
+        "Home Office",
+        "Bathroom",
+        "Powder Room",
+        "Balcony",
+        "Terrace",
+        "Patio",
+        "Prayer Room",
+        "Home Gym",
+        "Walk-in Closet",
+        "Home Theater",
+        "Basement",
+        "Loft",
+        "Garage"
+    )
+
+    Column(
+        modifier = Modifier
+            .fillMaxSize().background(Color.White)
+    ) {
+        HeaderWithSearch("Type of Room")
+
+        Spacer(modifier = Modifier.height(12.dp))
+
+        Box(
+            modifier = Modifier.weight(1f)
+        ) {
+            LazyColumn(
+                modifier = Modifier.fillMaxSize(),
+                contentPadding = PaddingValues(start = 24.dp, end = 24.dp, bottom = 100.dp)
+            ) {
+                items(roomTypes) { roomType ->
+                    RoomTypeItem(
+                        roomName = roomType,
+                        isSelected = roomType == selectedRoom,
+                        onClick = { selectedRoom = roomType }
+                    )
+
+                    if (roomType != roomTypes.last()) {
+                        Divider(
+                            color = Color(0xFFDBDBDB),
+                            thickness = 0.5.dp
+                        )
+                    }
+                }
+            }
+            Box(
+                modifier = Modifier
+                    .fillMaxWidth()
+                    .height(311.dp)
+                    .align(Alignment.BottomCenter)
+                    .background(
+                        brush = Brush.verticalGradient(
+                            colors = listOf(
+                                Color(0x00FFFFFF),
+                                Color(0xF5FFFFFF)
+                            ),
+                            startY = 0f,
+                            endY = 900f
+                        )
+                    )
+            )
+        }
+    }
+
+}
+
+@OptIn(ExperimentalMaterial3Api::class)
+@Composable
+fun HeaderWithSearch(title: String) {
+    var isSearchExpanded by remember { mutableStateOf(false) }
+    var searchText by remember { mutableStateOf("") }
+    Row(
+        modifier = Modifier
+            .fillMaxWidth()
+            .padding(horizontal = 24.dp),
+        horizontalArrangement = Arrangement.SpaceBetween,
+        verticalAlignment = Alignment.CenterVertically
+    ) {
+        AnimatedVisibility(
+            visible = !isSearchExpanded,
+            enter = fadeIn() + expandHorizontally(),
+            exit = fadeOut() + shrinkHorizontally()
+        ) {
+            Text(
+                text = title,
+                fontSize = 21.sp,
+                fontWeight = FontWeight.Bold,
+                color = Color.Black,
+                modifier = Modifier.padding(end = 16.dp, top = 12.5.dp, bottom = 12.dp)
+            )
+        }
+
+        Box(
+            modifier = Modifier
+                .then(
+                    if (isSearchExpanded) Modifier.weight(1f)
+                    else Modifier.size(32.dp)
+                )
+                .height(if (isSearchExpanded) 50.dp else 32.dp)
+                .clip(if (isSearchExpanded) RoundedCornerShape(10.dp) else CircleShape)
+                .background(if (isSearchExpanded) fieldBack else Color(0xFFF7F7F7))
+                .clickable(
+                    enabled = !isSearchExpanded,
+                    onClick = { isSearchExpanded = true }
+                ),
+            contentAlignment = if (isSearchExpanded) Alignment.CenterStart else Alignment.Center
+        ) {
+            if (isSearchExpanded) {
+                BasicTextField(
+                    value = searchText,
+                    onValueChange = { searchText = it },
+                    textStyle = androidx.compose.ui.text.TextStyle(
+                        fontSize = 16.sp,
+                        fontWeight = FontWeight.Normal,
+                        letterSpacing = 0.16.sp,
+                        color = Color.Black
+                    ),
+                    singleLine = true,
+                    modifier = Modifier.fillMaxWidth()
+                ) { innerTextField ->
+                    TextFieldDefaults.DecorationBox(
+                        value = searchText,
+                        innerTextField = innerTextField,
+                        placeholder = { Text("Search") },
+                        leadingIcon = {
+                            Image(
+                                painter = painterResource(Res.drawable.search),
+                                contentDescription = null,
+                                modifier = Modifier.size(18.dp),
+                                colorFilter = ColorFilter.tint(color = Color(0xFFA0A0A0))
+                            )
+                        },
+                        trailingIcon = {
+                            Image(
+                                painter = painterResource(Res.drawable.close),
+                                contentDescription = "Close",
+                                modifier = Modifier
+                                    .size(18.dp)
+                                    .clickable {
+                                        searchText = ""
+                                        isSearchExpanded = false
+                                    },
+                                colorFilter = ColorFilter.tint(color = Color(0xFFA0A0A0))
+                            )
+                        },
+                        singleLine = true,
+                        enabled = true,
+                        interactionSource = remember { MutableInteractionSource() },
+                        colors = TextFieldDefaults.colors(
+                            unfocusedContainerColor = Color.Transparent,
+                            focusedContainerColor = Color.Transparent,
+                            unfocusedIndicatorColor = Color.Transparent,
+                            focusedIndicatorColor = Color.Transparent
+                        ),
+                        contentPadding = PaddingValues(horizontal = 12.dp, vertical = 0.dp),
+                        visualTransformation = VisualTransformation.None
+                    )
+                }
+            } else {
+                Box(modifier = Modifier.padding(horizontal = 10.dp)) {
+                    Image(
+                        painter = painterResource(Res.drawable.search),
+                        contentDescription = "Search",
+                        colorFilter = ColorFilter.tint(color = Color(0xFFA0A0A0)),
+                        modifier = Modifier.size(18.dp)
+                    )
+                }
+            }
+        }
+
+    }
+}
+
+@Composable
+private fun RoomTypeItem(
+    roomName: String,
+    isSelected: Boolean,
+    onClick: () -> Unit
+) {
+    Box(
+        modifier = Modifier
+            .fillMaxWidth()
+            .clip(RoundedCornerShape(10.dp))
+            .clickable(onClick = onClick)
+    ) {
+        Row(
+            modifier = Modifier
+                .fillMaxWidth()
+                .padding(vertical = 15.dp, horizontal = 24.dp),
+            horizontalArrangement = Arrangement.SpaceBetween,
+            verticalAlignment = Alignment.CenterVertically
+        ) {
+            Text(
+                text = roomName,
+                fontSize = 16.sp,
+                fontWeight = FontWeight.Bold,
+                color = Color(0xFF414040)
+            )
+
+            if (isSelected) {
+                Box(
+                    modifier = Modifier.size(21.dp),
+                    contentAlignment = Alignment.Center
+                ) {
+                    Box(
+                        modifier = Modifier
+                            .size(21.dp)
+                            .clip(CircleShape)
+                            .background(Color(0xFFF1F0F0))
+                    )
+
+                    Box(
+                        modifier = Modifier
+                            .size(13.53.dp)
+                            .clip(CircleShape)
+                            .background(Color(0xFFA3B18A))
+                    )
+                }
+            }
+        }
+    }
+}
