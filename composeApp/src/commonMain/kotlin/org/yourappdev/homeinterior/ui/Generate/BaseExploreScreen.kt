@@ -52,7 +52,7 @@ import org.jetbrains.compose.resources.painterResource
 import org.yourappdev.homeinterior.ui.Files.ProBadge
 
 @Composable
-fun BaseAddScreen(onCloseClick: () -> Unit = {}) {
+fun BaseAddScreen(endToNext: () -> Unit, onCloseClick: () -> Unit = {}) {
     val state = rememberPagerState(pageCount = { 4 })
     val scope = rememberCoroutineScope()
     val currentPage = state.currentPage
@@ -69,6 +69,8 @@ fun BaseAddScreen(onCloseClick: () -> Unit = {}) {
                         scope.launch {
                             if (currentPage < 3) {
                                 state.animateScrollToPage(page = state.currentPage + 1)
+                            } else {
+                                endToNext()
                             }
                         }
                     },

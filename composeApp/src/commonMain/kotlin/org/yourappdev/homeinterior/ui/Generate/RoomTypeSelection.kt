@@ -82,7 +82,7 @@ fun RoomTypeSelection() {
         ) {
             LazyColumn(
                 modifier = Modifier.fillMaxSize(),
-                contentPadding = PaddingValues(start = 24.dp, end = 24.dp, bottom = 100.dp)
+                contentPadding = PaddingValues(start = 24.dp, end = 24.dp, bottom = 130.dp)
             ) {
                 items(roomTypes) { roomType ->
                     RoomTypeItem(

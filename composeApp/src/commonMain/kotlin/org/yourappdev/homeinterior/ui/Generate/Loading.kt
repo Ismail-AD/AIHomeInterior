@@ -20,6 +20,7 @@ import androidx.compose.ui.graphics.drawscope.rotate
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
+import androidx.compose.ui.window.Dialog
 import homeinterior.composeapp.generated.resources.Res
 import io.github.alexzhirkevich.compottie.Compottie
 import io.github.alexzhirkevich.compottie.LottieCompositionSpec
@@ -41,63 +42,66 @@ fun LoadingScreen() {
         label = "rotation"
     )
 
-    Box(
-        modifier = Modifier
-            .fillMaxSize()
-            .background(Color.White.copy(alpha = 0.82f)),
-        contentAlignment = Alignment.Center
-    ) {
-        Column(
-            horizontalAlignment = Alignment.CenterHorizontally,
-            verticalArrangement = Arrangement.Center
-        ) {
-            Box(
-                modifier = Modifier.size(226.dp),
-                contentAlignment = Alignment.Center
-            ) {
-                Canvas(
-                    modifier = Modifier.size(174.dp)
-                ) {
-                    rotate(rotation) {
-                        val gradientColors = listOf(
-                            Color(0xFFF059EB),
-                            Color(0xFFFFCF30),
-                            Color(0xFFA9D35D)
-                        )
+    Dialog(onDismissRequest = {
 
-                        drawArc(
-                            brush = Brush.sweepGradient(
-                                colors = gradientColors,
-                                center = center
-                            ),
-                            startAngle = 0f,
-                            sweepAngle = 360f,
-                            useCenter = false,
-                            style = Stroke(width = 7.5f, cap = StrokeCap.Round)
+    }) {
+        Box(
+            modifier = Modifier
+                .fillMaxSize(),
+            contentAlignment = Alignment.Center
+        ) {
+            Column(
+                horizontalAlignment = Alignment.CenterHorizontally,
+                verticalArrangement = Arrangement.Center
+            ) {
+                Box(
+                    modifier = Modifier.size(226.dp),
+                    contentAlignment = Alignment.Center
+                ) {
+                    Canvas(
+                        modifier = Modifier.size(174.dp)
+                    ) {
+                        rotate(rotation) {
+                            val gradientColors = listOf(
+                                Color(0xFFF059EB),
+                                Color(0xFFFFCF30),
+                                Color(0xFFA9D35D)
+                            )
+
+                            drawArc(
+                                brush = Brush.sweepGradient(
+                                    colors = gradientColors,
+                                    center = center
+                                ),
+                                startAngle = 0f,
+                                sweepAngle = 360f,
+                                useCenter = false,
+                                style = Stroke(width = 7.5f, cap = StrokeCap.Round)
+                            )
+                        }
+                    }
+
+                    Canvas(
+                        modifier = Modifier.size(120.dp)
+                    ) {
+                        drawCircle(
+                            color = Color.White,
+                            radius = size.minDimension / 2
                         )
                     }
+
+                    SparkleIcon()
                 }
 
-                Canvas(
-                    modifier = Modifier.size(120.dp)
-                ) {
-                    drawCircle(
-                        color = Color.White,
-                        radius = size.minDimension / 2
-                    )
-                }
+                Spacer(modifier = Modifier.height(24.dp))
 
-                SparkleIcon()
+                Text(
+                    text = "Processing your image...",
+                    fontSize = 22.sp,
+                    fontWeight = FontWeight.Bold,
+                    color = Color(0xFF575958)
+                )
             }
-
-            Spacer(modifier = Modifier.height(24.dp))
-
-            Text(
-                text = "Processing your image...",
-                fontSize = 22.sp,
-                fontWeight = FontWeight.Bold,
-                color = Color(0xFF575958)
-            )
         }
     }
 }

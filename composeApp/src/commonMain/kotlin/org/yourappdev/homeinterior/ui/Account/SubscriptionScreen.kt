@@ -36,6 +36,7 @@ import androidx.compose.ui.unit.sp
 import androidx.compose.ui.util.lerp
 import homeinterior.composeapp.generated.resources.Res
 import homeinterior.composeapp.generated.resources.arrow_back_
+import homeinterior.composeapp.generated.resources.close
 import homeinterior.composeapp.generated.resources.subscardback
 import homeinterior.composeapp.generated.resources.subscriptionbackgroun
 import org.jetbrains.compose.resources.painterResource
@@ -141,15 +142,22 @@ fun SubscriptionScreen(onBackClick: () -> Unit) {
                 )
         )
 
-        Box(modifier = Modifier.padding(start = 10.dp, top = 20.dp)) {
-            Image(
-                painter = painterResource(Res.drawable.arrow_back_),
-                colorFilter = ColorFilter.tint(color = Color(0xFF808080)),
-                contentDescription = "Back",
-                modifier = Modifier
-                    .size(18.dp)
-                    .clickable { onBackClick() }
-            )
+        Box(modifier = Modifier.align(Alignment.TopEnd).padding(end = 10.dp, top = 20.dp)) {
+            Box(
+                modifier = Modifier.size(30.dp)
+                    .background(Color.White.copy(alpha = 0.3f), CircleShape).clip(CircleShape)
+                    .clickable {
+                        onBackClick()
+                    }, contentAlignment = Alignment.Center
+            ) {
+                Image(
+                    painter = painterResource(Res.drawable.close),
+                    colorFilter = ColorFilter.tint(color = Color.White),
+                    contentDescription = "Back",
+                    modifier = Modifier
+                        .size(24.dp)
+                )
+            }
         }
 
 
@@ -333,8 +341,10 @@ fun SubscriptionCard(
                 contentScale = ContentScale.Crop
             )
 
-            Row(modifier = Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.SpaceBetween,
-                verticalAlignment = Alignment.CenterVertically) {
+            Row(
+                modifier = Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.SpaceBetween,
+                verticalAlignment = Alignment.CenterVertically
+            ) {
                 Text(
                     text = plan.name,
                     fontSize = 22.sp,

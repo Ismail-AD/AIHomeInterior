@@ -3,6 +3,7 @@ package org.yourappdev.homeinterior.ui.BottomBarScreen
 import androidx.compose.foundation.Image
 import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.Arrangement
+import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
@@ -12,6 +13,7 @@ import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.layout.statusBarsPadding
 import androidx.compose.foundation.shape.CircleShape
+import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material3.FabPosition
 import androidx.compose.material3.FloatingActionButton
 import androidx.compose.material3.FloatingActionButtonDefaults
@@ -21,9 +23,13 @@ import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.mutableStateListOf
 import androidx.compose.runtime.remember
+import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.draw.innerShadow
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.ColorFilter
+import androidx.compose.ui.graphics.shadow.Shadow
+import androidx.compose.ui.unit.DpOffset
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import androidx.navigation3.runtime.NavEntry
@@ -52,7 +58,9 @@ import org.yourappdev.homeinterior.ui.Create.CreateScreen
 import org.yourappdev.homeinterior.ui.Explore.ExploreScreen
 import org.yourappdev.homeinterior.ui.Files.CreateEditScreen
 import org.yourappdev.homeinterior.ui.Files.FilesScreen
+import org.yourappdev.homeinterior.ui.Generate.AboutToGenerateScreen
 import org.yourappdev.homeinterior.ui.Generate.BaseAddScreen
+import org.yourappdev.homeinterior.ui.Generate.ResultScreen
 import org.yourappdev.homeinterior.ui.OnBoarding.BaseScreen
 import org.yourappdev.homeinterior.ui.UiUtils.SlippyBar
 import org.yourappdev.homeinterior.ui.UiUtils.SlippyBarStyle
@@ -138,20 +146,28 @@ fun BaseBottomBarScreen() {
         },
         floatingActionButton = {
             if (shouldShowBottomBar) {
-                FloatingActionButton(
-                    onClick = {
-                        backStack.add(Routes.AddScreen)
-                    },
-                    containerColor = Color(0xFF90EE90),
-                    elevation = FloatingActionButtonDefaults.elevation(
-                        defaultElevation = 0.dp
-                    ), modifier = Modifier.size(65.dp).offset(y = 54.dp), shape = CircleShape
+                Box(
+                    modifier = Modifier.offset(y = 50.dp).background(bottomBarBack, CircleShape).size(65.dp)
+
+
                 ) {
-                    Image(
-                        painterResource(Res.drawable.add_2_24px),
-                        contentDescription = "Add",
-                        colorFilter = ColorFilter.tint(color = Color.Black)
-                    )
+
+                    FloatingActionButton(
+                        onClick = {
+                            backStack.add(Routes.AddScreen)
+                        },
+                        containerColor = Color(0xFF90EE90),
+                        elevation = FloatingActionButtonDefaults.elevation(
+                            defaultElevation = 0.dp
+                        ), modifier = Modifier.size(60.dp).align(Alignment.Center)
+                            , shape = CircleShape
+                    ) {
+                        Image(
+                            painterResource(Res.drawable.add_2_24px),
+                            contentDescription = "Add",
+                            colorFilter = ColorFilter.tint(color = Color.Black),
+                        )
+                    }
                 }
             }
         },
@@ -164,7 +180,9 @@ fun BaseBottomBarScreen() {
             entryProvider = { key ->
                 when (key) {
                     is Routes.Create -> NavEntry(key) {
-                        CreateScreen()
+                        CreateScreen() {
+                            backStack.add(Routes.Subscription)
+                        }
                     }
 
                     is Routes.Explore -> NavEntry(key) {
@@ -178,7 +196,9 @@ fun BaseBottomBarScreen() {
                     }
 
                     is Routes.AddScreen -> NavEntry(key) {
-                        BaseAddScreen() {
+                        BaseAddScreen(endToNext = {
+                            backStack.add(Routes.AbtToGenerate)
+                        }) {
                             backStack.removeLastOrNull()
                         }
                     }
@@ -186,6 +206,14 @@ fun BaseBottomBarScreen() {
                     is Routes.FileEdit -> NavEntry(key) {
                         CreateEditScreen() {
                             backStack.removeLastOrNull()
+                        }
+                    }
+
+                    is Routes.AbtToGenerate -> NavEntry(key) {
+                        AboutToGenerateScreen(onCloseClick = {
+                            backStack.removeLastOrNull()
+                        }) {
+                            backStack.add(Routes.Result)
                         }
                     }
 
@@ -202,6 +230,13 @@ fun BaseBottomBarScreen() {
                             backStack.removeLastOrNull()
                         }
                     }
+
+                    is Routes.Result -> NavEntry(key) {
+                        ResultScreen() {
+                            backStack.removeLastOrNull()
+                        }
+                    }
+
 
                     is Routes.Profile -> NavEntry(key) {
                         ProfileScreen() {

@@ -1,12 +1,22 @@
 package org.yourappdev.homeinterior.ui.OnBoarding
 
+import androidx.compose.animation.AnimatedContent
 import androidx.compose.animation.core.FastOutSlowInEasing
 import androidx.compose.animation.core.LinearOutSlowInEasing
 import androidx.compose.animation.core.tween
+import androidx.compose.animation.fadeIn
+import androidx.compose.animation.fadeOut
+import androidx.compose.animation.slideInHorizontally
+import androidx.compose.animation.slideInVertically
+import androidx.compose.animation.slideOutHorizontally
+import androidx.compose.animation.slideOutVertically
+import androidx.compose.animation.togetherWith
+import androidx.compose.foundation.BorderStroke
 import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
+import androidx.compose.foundation.layout.PaddingValues
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.fillMaxHeight
@@ -22,6 +32,7 @@ import androidx.compose.material3.ButtonDefaults
 import androidx.compose.material3.CardDefaults
 import androidx.compose.material3.OutlinedButton
 import androidx.compose.material3.OutlinedCard
+import androidx.compose.material3.Surface
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.remember
@@ -96,25 +107,33 @@ fun BaseScreen(onEndReached: () -> Unit) {
                 verticalArrangement = Arrangement.SpaceBetween,
             ) {
                 Spacer(modifier = Modifier.padding(vertical = 10.dp))
-                Column(verticalArrangement = Arrangement.spacedBy(13.dp)) {
-                    Text(
-                        text = myList[state.currentPage].title,
-                        fontSize = 25.sp,
-                        fontWeight = FontWeight.Bold,
-                        lineHeight = 25.sp,
-                        textAlign = TextAlign.Center,
-                        modifier = Modifier.fillMaxWidth()
-                    )
+                AnimatedContent(
+                    targetState = state.currentPage,
+                    transitionSpec = {
+                        fadeIn(animationSpec = tween(500, easing = FastOutSlowInEasing)).togetherWith(
+                            fadeOut(animationSpec = tween(500, easing = FastOutSlowInEasing))
+                        )
+                    }
+                ) { page ->
+                    Column(verticalArrangement = Arrangement.spacedBy(13.dp)) {
+                        Text(
+                            text = myList[page].title,
+                            fontSize = 25.sp,
+                            fontWeight = FontWeight.Bold,
+                            lineHeight = 25.sp,
+                            textAlign = TextAlign.Center,
+                            modifier = Modifier.fillMaxWidth()
+                        )
 
-
-                    Text(
-                        text = myList[state.currentPage].subTitle,
-                        fontSize = 14.5.sp,
-                        textAlign = TextAlign.Center,
-                        modifier = Modifier.fillMaxWidth(),
-                        lineHeight = 21.sp,
-                        color = Color(0xff979797)
-                    )
+                        Text(
+                            text = myList[page].subTitle,
+                            fontSize = 14.5.sp,
+                            textAlign = TextAlign.Center,
+                            modifier = Modifier.fillMaxWidth(),
+                            lineHeight = 21.sp,
+                            color = Color(0xff979797)
+                        )
+                    }
                 }
 
                 ProgressIndicator(
@@ -126,23 +145,24 @@ fun BaseScreen(onEndReached: () -> Unit) {
                     modifier = Modifier.fillMaxWidth().padding(bottom = 17.dp),
                     horizontalArrangement = Arrangement.spacedBy(10.dp)
                 ) {
-                    OutlinedButton(
-                        onClick = { },
-                        colors = ButtonDefaults.buttonColors(containerColor = Color.Transparent),
-                        elevation = ButtonDefaults.elevatedButtonElevation(0.dp),
-                        shape = RoundedCornerShape(24.dp),
-                        modifier = Modifier.weight(1f)
+                    Surface(
+                        onClick = {
+                            onEndReached()
+                        }, color = Color.Transparent, shape = RoundedCornerShape(24.dp),
+                        modifier = Modifier.weight(1f), border = BorderStroke(1.dp, color = Color(0xff979797))
                     ) {
                         Text(
                             text = "Skip",
-                            color = Color(0xFF4CAF50),
-                            modifier = Modifier.fillMaxWidth().padding(vertical = 8.dp),
-                            textAlign = TextAlign.Center
+                            color = Color(0xff979797),
+                            modifier = Modifier.fillMaxWidth().padding(vertical = 11.dp),
+                            textAlign = TextAlign.Center,
+                            fontSize = 15.sp, fontWeight = FontWeight.Bold
                         )
                     }
+
                     Button(
                         onClick = {
-                            if (state.currentPage < myList.size) {
+                            if (state.currentPage + 1 < myList.size) {
                                 scope.launch {
                                     state.animateScrollToPage(
                                         state.currentPage + 1,
@@ -152,13 +172,16 @@ fun BaseScreen(onEndReached: () -> Unit) {
                                         )
                                     )
                                 }
+                            } else {
+                                onEndReached()
                             }
                         },
                         colors = ButtonDefaults.buttonColors(containerColor = Color(0xFF81C784)),
                         shape = RoundedCornerShape(24.dp),
-                        modifier = Modifier.weight(1f)
+                        modifier = Modifier.weight(1f),
+                        contentPadding = PaddingValues(vertical = 13.dp)
                     ) {
-                        Text(text = "Continue", color = Color.White)
+                        Text(text = "Continue", fontSize = 15.sp, color = Color.White, fontWeight = FontWeight.Bold)
                     }
                 }
             }

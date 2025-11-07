@@ -39,29 +39,36 @@ fun App() {
 
     val backStack = remember { mutableStateListOf<Any>(Routes.BaseAppScreen) }
     MaterialTheme(typography = AppTypography()) {
-        LoadingScreen()
-//        NavDisplay(
-//            backStack = backStack,
-//            entryProvider = { key ->
-//                when (key) {
-//                    is Routes.OnBoarding -> NavEntry(key) {
-//                        BaseScreen {
-//                            backStack.add(Routes.BaseAppScreen)
-//                        }
-//                    }
-//
-//                    is Routes.BaseAppScreen -> NavEntry(key) {
-//                        BaseBottomBarScreen()
-//                    }
-//
-//                    else -> NavEntry(key) {
-//                        Column(modifier = Modifier.fillMaxSize(), verticalArrangement = Arrangement.Center) {
-//                            Text("Nothing here!")
-//                        }
-//                    }
-//                }
-//
-//            }
-//        )
+
+        NavDisplay(
+            backStack = backStack,
+            entryProvider = { key ->
+                when (key) {
+                    is Routes.Splash -> NavEntry(key) {
+                        SplashScreen() {
+                            backStack.clear()
+                            backStack.add(Routes.OnBoarding)
+                        }
+                    }
+
+                    is Routes.OnBoarding -> NavEntry(key) {
+                        BaseScreen {
+                            backStack.add(Routes.BaseAppScreen)
+                        }
+                    }
+
+                    is Routes.BaseAppScreen -> NavEntry(key) {
+                        BaseBottomBarScreen()
+                    }
+
+                    else -> NavEntry(key) {
+                        Column(modifier = Modifier.fillMaxSize(), verticalArrangement = Arrangement.Center) {
+                            Text("Nothing here!")
+                        }
+                    }
+                }
+
+            }
+        )
     }
 }

@@ -10,6 +10,11 @@ import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material3.*
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.LaunchedEffect
+import androidx.compose.runtime.getValue
+import androidx.compose.runtime.mutableStateOf
+import androidx.compose.runtime.remember
+import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
@@ -28,29 +33,41 @@ import homeinterior.composeapp.generated.resources.edit_icon
 import homeinterior.composeapp.generated.resources.generate
 import homeinterior.composeapp.generated.resources.premiumicon
 import homeinterior.composeapp.generated.resources.sofa
+import kotlinx.coroutines.delay
 import org.jetbrains.compose.resources.painterResource
 
 @Composable
-fun AboutToGenerateScreen() {
+fun AboutToGenerateScreen(onCloseClick: () -> Unit,onResult: () -> Unit) {
     val backgroundColor = Color(0xFFFFFFFF)
-    val darkText = Color(0xFF2C2C2C)
-    val mediumText = Color(0xFF4D4D4D)
-    val grayText = Color(0xFF91918F)
-    val lightGrayText = Color(0xFF90918F)
     val borderColor = Color(0xFFD7D6D6)
     val selectedBorderColor = Color(0xFFACBE8D)
 
+    var showLoader by remember {
+        mutableStateOf(false)
+    }
+    LaunchedEffect(showLoader) {
+        if (showLoader) {
+            delay(5000)
+            showLoader = false
+            onResult()
+        }
+    }
     Box(
         modifier = Modifier
             .fillMaxSize()
             .background(backgroundColor)
     ) {
+        if (showLoader) {
+            LoadingScreen()
+        }
         Column(
             modifier = Modifier
                 .fillMaxSize()
                 .statusBarsPadding()
         ) {
-            TopBar(darkText = darkText)
+            TopBar() {
+
+            }
 
             Spacer(modifier = Modifier.height(10.dp))
 
@@ -65,7 +82,6 @@ fun AboutToGenerateScreen() {
             SelectionCard(
                 label = "Type",
                 value = "Bedroom",
-                isSelected = true,
                 borderColor = selectedBorderColor,
                 modifier = Modifier
                     .fillMaxWidth()
@@ -77,7 +93,6 @@ fun AboutToGenerateScreen() {
             SelectionCard(
                 label = "Style",
                 value = "Contemporary",
-                isSelected = false,
                 borderColor = borderColor,
                 modifier = Modifier
                     .fillMaxWidth()
@@ -100,7 +115,9 @@ fun AboutToGenerateScreen() {
                     .width(170.dp)
                     .height(49.dp)
                     .align(Alignment.CenterHorizontally)
-            )
+            ) {
+                showLoader = true
+            }
 
             Spacer(modifier = Modifier.height(24.dp))
         }
@@ -108,7 +125,7 @@ fun AboutToGenerateScreen() {
 }
 
 @Composable
-private fun TopBar(darkText: Color) {
+fun TopBar(onCloseClick: () -> Unit) {
     Row(
         modifier = Modifier
             .fillMaxWidth()
@@ -117,7 +134,7 @@ private fun TopBar(darkText: Color) {
         horizontalArrangement = Arrangement.Start
     ) {
         Box(modifier = Modifier.clip(CircleShape).clickable {
-
+            onCloseClick()
         }, contentAlignment = Alignment.Center) {
             Image(
                 painter = painterResource(Res.drawable.close),
@@ -133,7 +150,7 @@ private fun TopBar(darkText: Color) {
             text = "Create",
             fontSize = 22.sp,
             fontWeight = FontWeight.SemiBold,
-            color = darkText
+            color = Color(0xFF2C2C2C)
         )
     }
 }
@@ -159,7 +176,6 @@ private fun ImagePreview(modifier: Modifier = Modifier) {
 private fun SelectionCard(
     label: String,
     value: String,
-    isSelected: Boolean,
     borderColor: Color,
     modifier: Modifier = Modifier
 ) {
@@ -172,7 +188,7 @@ private fun SelectionCard(
         modifier = modifier
             .clip(RoundedCornerShape(9.dp))
             .border(
-                width = if (isSelected) 1.5.dp else 1.dp,
+                width = 1.dp,
                 color = borderColor,
                 shape = RoundedCornerShape(9.dp)
             )
@@ -185,7 +201,7 @@ private fun SelectionCard(
         ) {
             Text(
                 text = value,
-                fontSize = 18.sp,
+                fontSize = 16.sp,
                 fontWeight = FontWeight.Medium,
                 color = mediumText
             )
@@ -194,7 +210,7 @@ private fun SelectionCard(
 
             Text(
                 text = label,
-                fontSize = 17.sp,
+                fontSize = 14.sp,
                 fontWeight = FontWeight.SemiBold,
                 color = grayText
             )
@@ -287,7 +303,7 @@ private fun ColorPaletteCard(
 }
 
 @Composable
-private fun GenerateButton(modifier: Modifier = Modifier) {
+private fun GenerateButton(modifier: Modifier = Modifier, onGenerateClick: () -> Unit) {
     val buttonGradient = Brush.linearGradient(
         0.0f to Color(0xFFFFFFFF),
         0.37f to Color(0xFFFFFFFF),
@@ -297,7 +313,9 @@ private fun GenerateButton(modifier: Modifier = Modifier) {
 
 
     Button(
-        onClick = { },
+        onClick = {
+            onGenerateClick()
+        },
         modifier = modifier,
         shape = RoundedCornerShape(50),
         colors = ButtonDefaults.buttonColors(

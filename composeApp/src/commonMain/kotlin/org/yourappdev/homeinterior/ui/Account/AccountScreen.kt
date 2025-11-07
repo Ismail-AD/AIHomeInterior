@@ -107,9 +107,7 @@ fun CreditCard(onSubscriptionClick: () -> Unit) {
         modifier = Modifier
             .fillMaxWidth()
             .padding(horizontal = 24.dp)
-            .height(100.dp).clickable(enabled = true, onClick = {
-                onSubscriptionClick()
-            })
+            .height(100.dp)
     ) {
 
         Image(
@@ -191,14 +189,16 @@ fun CreditCard(onSubscriptionClick: () -> Unit) {
                         modifier = Modifier
                             .clip(RoundedCornerShape(5.dp))
                             .background(Color(0xFF71BA47))
-                            .padding(horizontal = 9.dp)
-                            .clickable(enabled = true, onClick = {})
+                            .clickable(enabled = true, onClick = {
+                                onSubscriptionClick()
+                            })
                     ) {
                         Text(
                             text = "Buy more Credits",
                             fontSize = 10.sp,
                             fontWeight = FontWeight.Medium,
-                            color = Color.White
+                            color = Color.White,
+                            modifier = Modifier.fillMaxWidth().padding(horizontal = 9.dp)
                         )
                     }
                 }

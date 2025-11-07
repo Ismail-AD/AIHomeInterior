@@ -3,10 +3,12 @@ package org.yourappdev.homeinterior.ui.Create
 
 import androidx.compose.foundation.Image
 import androidx.compose.foundation.background
+import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.lazy.LazyRow
 import androidx.compose.foundation.lazy.items
 import androidx.compose.foundation.rememberScrollState
+import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.foundation.verticalScroll
 import androidx.compose.material3.*
@@ -16,12 +18,14 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.graphics.Brush
 import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.graphics.ColorFilter
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import homeinterior.composeapp.generated.resources.Res
-import homeinterior.composeapp.generated.resources.createpage_
+import homeinterior.composeapp.generated.resources.add_2_24px
+import homeinterior.composeapp.generated.resources.createpageimage
 import homeinterior.composeapp.generated.resources.premiumicon
 import org.jetbrains.compose.resources.painterResource
 import org.jetbrains.compose.resources.stringResource
@@ -33,62 +37,94 @@ data class RoomCategory(
 )
 
 @Composable
-fun CreateScreen() {
+fun CreateScreen(onClick: () -> Unit) {
     val scrollState = rememberScrollState()
 
     Column(
         modifier = Modifier
             .fillMaxSize()
             .background(Color.White)
-            .verticalScroll(scrollState)
-            .padding(start = 24.dp, top = 10.dp)
+            .padding(top = 10.dp),
+        verticalArrangement = Arrangement.spacedBy(32.dp)
     ) {
-        Header()
+        Header() {
+            onClick()
+        }
+        EmptyStateCard() {
 
-        Spacer(modifier = Modifier.height(32.dp))
-
-        EmptyStateCard()
-
-        Spacer(modifier = Modifier.height(32.dp))
-
-        TrendingSection()
-
-        Spacer(modifier = Modifier.height(32.dp))
-
-        RecentFilesSection()
-
-        Spacer(modifier = Modifier.height(32.dp))
+        }
+        Column(modifier = Modifier.verticalScroll(scrollState), verticalArrangement = Arrangement.spacedBy(32.dp)) {
+            TrendingSection()
+            RecentFilesSection()
+        }
     }
 }
 
 @Composable
-private fun Header() {
+fun Header(onClick: () -> Unit) {
     Row(
-        modifier = Modifier.fillMaxWidth(),
-        horizontalArrangement = Arrangement.spacedBy(16.dp),
-        verticalAlignment = Alignment.CenterVertically
+        modifier = Modifier.fillMaxWidth().padding(start = 24.dp,end = 20.dp),
+        verticalAlignment = Alignment.Top
     ) {
-        Image(
-            painter = painterResource(Res.drawable.premiumicon),
-            contentDescription = "",
-            modifier = Modifier.size(24.dp)
-        )
-
         Text(
             text = "Interior AI",
-            fontSize = 22.sp,
-            fontWeight = FontWeight.SemiBold,
+            fontSize = 20.sp,
+            fontWeight = FontWeight.Bold,
             color = Color(0xFF2C2C2C),
-            modifier = Modifier.weight(1f).padding(end = 30.dp),
-            textAlign = TextAlign.Center
+            modifier = Modifier.weight(1f),
+            textAlign = TextAlign.Start
         )
+        Box(modifier = Modifier.size(30.dp).clip(CircleShape).clickable {
+            onClick()
+        }, contentAlignment = Alignment.Center) {
+            Image(
+                painter = painterResource(Res.drawable.premiumicon),
+                contentDescription = "",
+                modifier = Modifier.size(21.dp)
+            )
+        }
     }
 }
 
 @Composable
-private fun EmptyStateCard() {
-    Box(modifier = Modifier.padding(end = 24.dp)) {
-        Image(painter = painterResource(Res.drawable.createpage_), contentDescription = null)
+private fun EmptyStateCard(onClick: () -> Unit) {
+    Box(modifier = Modifier.padding(start = 24.dp,end = 24.dp)) {
+
+        Image(painter = painterResource(Res.drawable.createpageimage), contentDescription = null)
+        Surface(
+            onClick = {
+                onClick()
+            },
+            color = Color(0xFFAAB892),
+            shape = RoundedCornerShape(20),
+            modifier = Modifier
+                .align(Alignment.BottomCenter)
+                .padding(bottom = 15.dp)
+                .height(28.dp),
+        ) {
+            Row(
+                modifier = Modifier
+                    .padding(horizontal = 16.dp, vertical = 4.dp)
+                    .fillMaxHeight(),
+                verticalAlignment = Alignment.CenterVertically
+            ) {
+                Image(
+                    painter = painterResource(Res.drawable.add_2_24px),
+                    contentDescription = "Add photo",
+                    colorFilter = ColorFilter.tint(color = Color.White),
+                    modifier = Modifier.size(13.dp)
+                )
+                Spacer(modifier = Modifier.width(6.dp))
+                Text(
+                    text = "Add photo",
+                    color = Color.White,
+                    fontSize = 12.sp,
+                    fontWeight = FontWeight.Medium,
+                    lineHeight = 12.sp,
+                    letterSpacing = (-0.5).sp
+                )
+            }
+        }
     }
 }
 
@@ -99,7 +135,8 @@ private fun TrendingSection() {
             text = "Trending",
             fontSize = 18.sp,
             fontWeight = FontWeight.SemiBold,
-            color = Color.Black
+            color = Color.Black,
+            modifier = Modifier.padding(start = 24.dp)
         )
 
         Spacer(modifier = Modifier.height(8.dp))
@@ -107,6 +144,7 @@ private fun TrendingSection() {
         TrendingGrid()
     }
 }
+
 @Composable
 private fun TrendingGrid() {
     val rooms = listOf(
@@ -126,6 +164,7 @@ private fun TrendingGrid() {
 
     LazyRow(
         horizontalArrangement = Arrangement.spacedBy(8.dp),
+        contentPadding = PaddingValues(start = 24.dp, end = 10.dp),
         modifier = Modifier.height(260.dp)
     ) {
         items(rooms.chunked(2)) { columnItems ->
@@ -154,8 +193,9 @@ private fun TrendingGrid() {
         }
     }
 }
+
 @Composable
-private fun RoomCategoryCard(room: RoomCategory,modifier: Modifier= Modifier) {
+private fun RoomCategoryCard(room: RoomCategory, modifier: Modifier = Modifier) {
     Box(
         modifier = modifier
             .width(126.dp)
@@ -191,7 +231,7 @@ private fun RoomCategoryCard(room: RoomCategory,modifier: Modifier= Modifier) {
 
 @Composable
 private fun RecentFilesSection() {
-    Column {
+    Column(modifier = Modifier.padding(bottom = 30.dp)) {
         Row(
             modifier = Modifier.fillMaxWidth().padding(end = 24.dp),
             horizontalArrangement = Arrangement.SpaceBetween,
@@ -201,11 +241,12 @@ private fun RecentFilesSection() {
                 text = "Recent Files",
                 fontSize = 18.sp,
                 fontWeight = FontWeight.SemiBold,
-                color = Color.Black
+                color = Color.Black,
+                modifier = Modifier.padding(start = 24.dp)
             )
 
             Text(
-                text = "See All",
+                text = "See all",
                 fontSize = 13.sp,
                 fontWeight = FontWeight.Light,
                 color = Color(0xFF8D8D8D)
@@ -223,7 +264,8 @@ private fun RecentFilesRow() {
     val recentFiles = listOf(1, 2, 3, 4)
 
     LazyRow(
-        horizontalArrangement = Arrangement.spacedBy(8.dp)
+        horizontalArrangement = Arrangement.spacedBy(8.dp),
+        contentPadding = PaddingValues(start = 24.dp, end = 10.dp),
     ) {
         items(recentFiles) { index ->
             Box(
