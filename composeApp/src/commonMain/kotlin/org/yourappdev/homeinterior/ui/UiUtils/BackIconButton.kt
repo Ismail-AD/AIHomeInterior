@@ -16,15 +16,16 @@ import androidx.compose.ui.unit.dp
 import homeinterior.composeapp.generated.resources.Res
 import homeinterior.composeapp.generated.resources.arrow_back_
 import homeinterior.composeapp.generated.resources.close
+import org.jetbrains.compose.resources.DrawableResource
 import org.jetbrains.compose.resources.painterResource
 
 @Composable
-fun BackIconButton(iconSize: Dp = 23.dp, tint: Color = Color(0xFF8C8989), onClick: () -> Unit) {
+fun BackIconButton(image: DrawableResource = Res.drawable.arrow_back_, iconSize: Dp = 23.dp, tint: Color = Color(0xFF8C8989), onClick: () -> Unit) {
     Box(modifier = Modifier.size(30.dp).clip(CircleShape).clickable {
         onClick()
     }, contentAlignment = Alignment.Center) {
         Image(
-            painter = painterResource(Res.drawable.arrow_back_),
+            painter = painterResource(image),
             contentDescription = "Close",
             colorFilter = ColorFilter.tint(color = tint),
             modifier = Modifier.size(iconSize)

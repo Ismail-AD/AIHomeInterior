@@ -22,6 +22,12 @@ import homeinterior.composeapp.generated.resources.Res
 import homeinterior.composeapp.generated.resources.compose_multiplatform
 import org.yourappdev.homeinterior.Greeting
 import org.yourappdev.homeinterior.navigation.Routes
+import org.yourappdev.homeinterior.ui.Authentication.ForgotPasswordScreen
+import org.yourappdev.homeinterior.ui.Authentication.LoginScreen
+import org.yourappdev.homeinterior.ui.Authentication.NewPasswordScreen
+import org.yourappdev.homeinterior.ui.Authentication.RegisterScreen
+import org.yourappdev.homeinterior.ui.Authentication.VerificationScreen
+import org.yourappdev.homeinterior.ui.Authentication.WelcomeScreen
 import org.yourappdev.homeinterior.ui.BottomBarScreen.BaseBottomBarScreen
 import org.yourappdev.homeinterior.ui.Create.CreateScreen
 import org.yourappdev.homeinterior.ui.Files.CreateEditScreen
@@ -39,36 +45,36 @@ fun App() {
 
     val backStack = remember { mutableStateListOf<Any>(Routes.OnBoarding) }
     MaterialTheme(typography = AppTypography()) {
-
-        NavDisplay(
-            backStack = backStack,
-            entryProvider = { key ->
-                when (key) {
-                    is Routes.Splash -> NavEntry(key) {
-                        SplashScreen() {
-                            backStack.clear()
-                            backStack.add(Routes.OnBoarding)
-                        }
-                    }
-
-                    is Routes.OnBoarding -> NavEntry(key) {
-                        BaseScreen {
-                            backStack.add(Routes.BaseAppScreen)
-                        }
-                    }
-
-                    is Routes.BaseAppScreen -> NavEntry(key) {
-                        BaseBottomBarScreen()
-                    }
-
-                    else -> NavEntry(key) {
-                        Column(modifier = Modifier.fillMaxSize(), verticalArrangement = Arrangement.Center) {
-                            Text("Nothing here!")
-                        }
-                    }
-                }
-
-            }
-        )
+        NewPasswordScreen { }
+//        NavDisplay(
+//            backStack = backStack,
+//            entryProvider = { key ->
+//                when (key) {
+//                    is Routes.Splash -> NavEntry(key) {
+//                        SplashScreen() {
+//                            backStack.clear()
+//                            backStack.add(Routes.OnBoarding)
+//                        }
+//                    }
+//
+//                    is Routes.OnBoarding -> NavEntry(key) {
+//                        BaseScreen {
+//                            backStack.add(Routes.BaseAppScreen)
+//                        }
+//                    }
+//
+//                    is Routes.BaseAppScreen -> NavEntry(key) {
+//                        BaseBottomBarScreen()
+//                    }
+//
+//                    else -> NavEntry(key) {
+//                        Column(modifier = Modifier.fillMaxSize(), verticalArrangement = Arrangement.Center) {
+//                            Text("Nothing here!")
+//                        }
+//                    }
+//                }
+//
+//            }
+//        )
     }
 }
