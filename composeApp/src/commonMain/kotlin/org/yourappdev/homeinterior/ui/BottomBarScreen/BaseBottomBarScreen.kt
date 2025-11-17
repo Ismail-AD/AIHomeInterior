@@ -2,55 +2,32 @@ package org.yourappdev.homeinterior.ui.BottomBarScreen
 
 import androidx.compose.foundation.Image
 import androidx.compose.foundation.background
-import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
-import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.fillMaxSize
-import androidx.compose.foundation.layout.fillMaxWidth
-import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.offset
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.layout.statusBarsPadding
 import androidx.compose.foundation.shape.CircleShape
-import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material3.FabPosition
 import androidx.compose.material3.FloatingActionButton
 import androidx.compose.material3.FloatingActionButtonDefaults
-import androidx.compose.material3.NavigationBar
 import androidx.compose.material3.Scaffold
-import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
-import androidx.compose.runtime.mutableStateListOf
-import androidx.compose.runtime.remember
+import androidx.compose.runtime.getValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.innerShadow
-import androidx.compose.ui.geometry.Offset
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.ColorFilter
 import androidx.compose.ui.graphics.shadow.Shadow
-import androidx.compose.ui.unit.DpOffset
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
-import androidx.navigation3.runtime.NavEntry
-import androidx.navigation3.ui.NavDisplay
-import homeinterior.composeapp.generated.resources.Res
-import homeinterior.composeapp.generated.resources.add
-import homeinterior.composeapp.generated.resources.add_2_24px
-import homeinterior.composeapp.generated.resources.createiconfinal
-import homeinterior.composeapp.generated.resources.files
-import homeinterior.composeapp.generated.resources.iconfiles
-import homeinterior.composeapp.generated.resources.newexploreicon
-import homeinterior.composeapp.generated.resources.profileiconnew
-import homeinterior.composeapp.generated.resources.selectedcreate
-import homeinterior.composeapp.generated.resources.selectedexploreicon
-import homeinterior.composeapp.generated.resources.selectedfile
-import homeinterior.composeapp.generated.resources.selectedprofile
-import homeinterior.composeapp.generated.resources.tabFourProfile
-import homeinterior.composeapp.generated.resources.tabOneCreate
-import homeinterior.composeapp.generated.resources.tabThreeFiles
-import homeinterior.composeapp.generated.resources.tabTwoExplore
+import androidx.navigation.NavHostController
+import androidx.navigation.compose.NavHost
+import androidx.navigation.compose.composable
+import androidx.navigation.compose.currentBackStackEntryAsState
+import homeinterior.composeapp.generated.resources.*
 import org.jetbrains.compose.resources.painterResource
 import org.jetbrains.compose.resources.stringResource
 import org.yourappdev.homeinterior.navigation.Routes
@@ -64,27 +41,23 @@ import org.yourappdev.homeinterior.ui.Files.FilesScreen
 import org.yourappdev.homeinterior.ui.Generate.AboutToGenerateScreen
 import org.yourappdev.homeinterior.ui.Generate.BaseAddScreen
 import org.yourappdev.homeinterior.ui.Generate.ResultScreen
-import org.yourappdev.homeinterior.ui.OnBoarding.BaseScreen
-import org.yourappdev.homeinterior.ui.UiUtils.SlippyBar
-import org.yourappdev.homeinterior.ui.UiUtils.SlippyBarStyle
-import org.yourappdev.homeinterior.ui.UiUtils.SlippyBottomBar
-import org.yourappdev.homeinterior.ui.UiUtils.SlippyIconStyle
-import org.yourappdev.homeinterior.ui.UiUtils.SlippyOptions
-import org.yourappdev.homeinterior.ui.UiUtils.SlippyTab
-import org.yourappdev.homeinterior.ui.UiUtils.SlippyTextStyle
+import org.yourappdev.homeinterior.ui.UiUtils.*
 import org.yourappdev.homeinterior.ui.theme.bottomBarBack
 import org.yourappdev.homeinterior.ui.theme.selectedNavItem
 import org.yourappdev.homeinterior.ui.theme.unselectedNavItem
 
 @Composable
-fun BaseBottomBarScreen() {
-    val backStack = remember { mutableStateListOf<Any>(Routes.Create) }
-    val listOfBottomRoutes = remember {
-        listOf(Routes.Create, Routes.Files, Routes.Explore, Routes.Account)
-    }
-    val currentRoute = backStack.lastOrNull()
+fun BaseBottomBarScreen(navController: NavHostController) {
+    val navBackStackEntry by navController.currentBackStackEntryAsState()
+    val currentDestination = navBackStackEntry?.destination
 
-    val shouldShowBottomBar = currentRoute in listOfBottomRoutes
+    val shouldShowBottomBar = currentDestination?.route?.let { route ->
+        route.contains("Create") ||
+                route.contains("Files") ||
+                route.contains("Explore") ||
+                route.contains("Account")
+    } ?: false
+
     Scaffold(
         bottomBar = {
             if (shouldShowBottomBar) {
@@ -94,7 +67,10 @@ fun BaseBottomBarScreen() {
                         icon = painterResource(Res.drawable.createiconfinal),
                         selectedIcon = painterResource(Res.drawable.selectedcreate),
                         action = {
-                            backStack.add(Routes.Create)
+                            navController.navigate(Routes.Create) {
+                                popUpTo(Routes.Create) { inclusive = true }
+                                launchSingleTop = true
+                            }
                         }
                     ),
                     SlippyTab(
@@ -102,20 +78,28 @@ fun BaseBottomBarScreen() {
                         icon = painterResource(Res.drawable.newexploreicon),
                         selectedIcon = painterResource(Res.drawable.selectedexploreicon),
                         action = {
-                            backStack.add(Routes.Explore)
+                            navController.navigate(Routes.Explore) {
+                                popUpTo(Routes.Create) { saveState = true }
+                                launchSingleTop = true
+                                restoreState = true
+                            }
                         }
                     ),
                     SlippyTab(
                         name = "",
                         icon = painterResource(Res.drawable.createiconfinal),
-                        action = {} // No action
+                        action = {} // Placeholder for FAB
                     ),
                     SlippyTab(
                         name = stringResource(Res.string.tabThreeFiles),
                         icon = painterResource(Res.drawable.files),
                         selectedIcon = painterResource(Res.drawable.selectedfile),
                         action = {
-                            backStack.add(Routes.Files)
+                            navController.navigate(Routes.Files) {
+                                popUpTo(Routes.Create) { saveState = true }
+                                launchSingleTop = true
+                                restoreState = true
+                            }
                         }
                     ),
                     SlippyTab(
@@ -123,10 +107,15 @@ fun BaseBottomBarScreen() {
                         icon = painterResource(Res.drawable.profileiconnew),
                         selectedIcon = painterResource(Res.drawable.selectedprofile),
                         action = {
-                            backStack.add(Routes.Account)
+                            navController.navigate(Routes.Account) {
+                                popUpTo(Routes.Create) { saveState = true }
+                                launchSingleTop = true
+                                restoreState = true
+                            }
                         }
                     )
                 )
+
                 SlippyBottomBar(
                     bar = SlippyBar(
                         barStyle = SlippyBarStyle(backgroundColor = bottomBarBack),
@@ -139,7 +128,7 @@ fun BaseBottomBarScreen() {
                             enabledIconColor = selectedNavItem,
                             disabledIconColor = unselectedNavItem
                         ),
-                        startIndex = 0
+                        startIndex = getSelectedTabIndex(currentDestination.route)
                     ),
                     tabs = tabs,
                     iconSize = 24.dp,
@@ -150,25 +139,35 @@ fun BaseBottomBarScreen() {
         floatingActionButton = {
             if (shouldShowBottomBar) {
                 Box(
-                    modifier = Modifier.offset(y = 50.dp).background(bottomBarBack, CircleShape).size(65.dp)
+                    modifier = Modifier
+                        .offset(y = 50.dp)
+                        .background(bottomBarBack, CircleShape)
+                        .size(65.dp)
                 ) {
                     FloatingActionButton(
                         onClick = {
-                            backStack.add(Routes.AddScreen)
+                            navController.navigate(Routes.AddScreen)
                         },
                         containerColor = Color(0xFFD4F7BD),
                         elevation = FloatingActionButtonDefaults.elevation(
                             defaultElevation = 0.dp
-                        ), modifier = Modifier.size(60.dp).align(Alignment.Center), shape = CircleShape
+                        ),
+                        modifier = Modifier
+                            .size(60.dp)
+                            .align(Alignment.Center),
+                        shape = CircleShape
                     ) {
                         Box(
-                            modifier = Modifier.fillMaxSize().innerShadow(
-                                shape = CircleShape,
-                                shadow = Shadow(
-                                    radius = 7.dp,
-                                    color = Color.Black.copy(alpha = 0.2f),
-                                )
-                            ), contentAlignment = Alignment.Center
+                            modifier = Modifier
+                                .fillMaxSize()
+                                .innerShadow(
+                                    shape = CircleShape,
+                                    shadow = Shadow(
+                                        radius = 7.dp,
+                                        color = Color.Black.copy(alpha = 0.2f),
+                                    )
+                                ),
+                            contentAlignment = Alignment.Center
                         ) {
                             Image(
                                 painterResource(Res.drawable.add),
@@ -182,86 +181,114 @@ fun BaseBottomBarScreen() {
         },
         floatingActionButtonPosition = FabPosition.Center
     ) { padding ->
-        NavDisplay(
-            modifier = Modifier.background(Color.White).padding(bottom = padding.calculateBottomPadding())
-                .statusBarsPadding(),
-            backStack = backStack,
-            entryProvider = { key ->
-                when (key) {
-                    is Routes.Create -> NavEntry(key) {
-                        CreateScreen() {
-                            backStack.add(Routes.Subscription)
-                        }
+        NavHost(
+            navController = navController,
+            startDestination = Routes.Create,
+            modifier = Modifier
+                .background(Color.White)
+                .padding(bottom = padding.calculateBottomPadding())
+                .statusBarsPadding()
+        ) {
+            // Bottom bar destinations
+            composable<Routes.Create> {
+                CreateScreen(
+                    onClick = {
+                        navController.navigate(Routes.Subscription)
                     }
-
-                    is Routes.Explore -> NavEntry(key) {
-                        ExploreScreen { }
-                    }
-
-                    is Routes.Files -> NavEntry(key) {
-                        FilesScreen() {
-                            backStack.add(Routes.FileEdit)
-                        }
-                    }
-
-                    is Routes.AddScreen -> NavEntry(key) {
-                        BaseAddScreen(endToNext = {
-                            backStack.add(Routes.AbtToGenerate)
-                        }) {
-                            backStack.removeLastOrNull()
-                        }
-                    }
-
-                    is Routes.FileEdit -> NavEntry(key) {
-                        CreateEditScreen() {
-                            backStack.removeLastOrNull()
-                        }
-                    }
-
-                    is Routes.AbtToGenerate -> NavEntry(key) {
-                        AboutToGenerateScreen(onCloseClick = {
-                            backStack.removeLastOrNull()
-                        }) {
-                            backStack.add(Routes.Result)
-                        }
-                    }
-
-                    is Routes.Account -> NavEntry(key) {
-                        AccountScreen(onSubscriptionClick = {
-                            backStack.add(Routes.Subscription)
-                        }) {
-                            backStack.add(Routes.Profile)
-                        }
-                    }
-
-                    is Routes.Subscription -> NavEntry(key) {
-                        SubscriptionScreen() {
-                            backStack.removeLastOrNull()
-                        }
-                    }
-
-                    is Routes.Result -> NavEntry(key) {
-                        ResultScreen() {
-                            backStack.removeLastOrNull()
-                        }
-                    }
-
-
-                    is Routes.Profile -> NavEntry(key) {
-                        ProfileScreen() {
-                            backStack.removeLastOrNull()
-                        }
-                    }
-
-                    else -> NavEntry(key) {
-                        Column(modifier = Modifier.fillMaxSize(), verticalArrangement = Arrangement.Center) {
-                            Text("Nothing here!")
-                        }
-                    }
-                }
-
+                )
             }
-        )
 
+            composable<Routes.Explore> {
+                ExploreScreen(
+                    onFilterClick = {
+
+                    }
+                )
+            }
+
+            composable<Routes.Files> {
+                FilesScreen(
+                    onImageClick = {
+                        navController.navigate(Routes.FileEdit)
+                    }
+                )
+            }
+
+            composable<Routes.Account> {
+                AccountScreen(
+                    onSubscriptionClick = {
+                        navController.navigate(Routes.Subscription)
+                    },
+                    onProfileClick = {
+                        navController.navigate(Routes.Profile)
+                    }
+                )
+            }
+
+            // Modal/Full screen destinations
+            composable<Routes.AddScreen> {
+                BaseAddScreen(
+                    endToNext = {
+                        navController.navigate(Routes.AbtToGenerate)
+                    },
+                    onCloseClick = {
+                        navController.popBackStack()
+                    }
+                )
+            }
+
+            composable<Routes.FileEdit> {
+                CreateEditScreen(
+                    onClick = {
+                        navController.popBackStack()
+                    }
+                )
+            }
+
+            composable<Routes.AbtToGenerate> {
+                AboutToGenerateScreen(
+                    onCloseClick = {
+                        navController.popBackStack()
+                    },
+                    onResult = {
+                        navController.navigate(Routes.Result)
+                    }
+                )
+            }
+
+            composable<Routes.Subscription> {
+                SubscriptionScreen(
+                    onBackClick = {
+                        navController.popBackStack()
+                    }
+                )
+            }
+
+            composable<Routes.Result> {
+                ResultScreen(
+                    onCloseClick = {
+                        navController.popBackStack()
+                    }
+                )
+            }
+
+            composable<Routes.Profile> {
+                ProfileScreen(
+                    onBackClick = {
+                        navController.popBackStack()
+                    }
+                )
+            }
+        }
+    }
+}
+
+private fun getSelectedTabIndex(currentRoute: String?): Int {
+    return when {
+        currentRoute?.contains("Create") == true -> 0
+        currentRoute?.contains("Explore") == true -> 1
+        currentRoute?.contains("Files") == true -> 3
+        currentRoute?.contains("Account") == true -> 4
+        else -> 0
     }
 }
