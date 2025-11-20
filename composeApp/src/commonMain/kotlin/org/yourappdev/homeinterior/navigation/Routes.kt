@@ -12,6 +12,22 @@ sealed class Routes {
     data object OnBoarding : Routes()
 
     @Serializable
+    @SerialName("register")
+    data object Register : Routes()
+
+    @Serializable
+    @SerialName("verification")
+    data object Verification : Routes()
+
+    @Serializable
+    @SerialName("welcome")
+    data object Welcome : Routes()
+
+    @Serializable
+    @SerialName("login")
+    data object Login : Routes()
+
+    @Serializable
     @SerialName("home")
     data object BaseAppScreen : Routes()
 
@@ -24,15 +40,15 @@ sealed class Routes {
     data object AddScreen : Routes()
 
     @Serializable
-    @SerialName("create")
+    @SerialName("Create")
     data object Create : Routes()
 
     @Serializable
-    @SerialName("explore")
+    @SerialName("Explore")
     data object Explore : Routes()
 
     @Serializable
-    @SerialName("files")
+    @SerialName("Files")
     data object Files : Routes()
 
     @Serializable
@@ -44,7 +60,7 @@ sealed class Routes {
     data object AbtToGenerate : Routes()
 
     @Serializable
-    @SerialName("account")
+    @SerialName("Account")
     data object Account : Routes()
 
     @Serializable

@@ -47,6 +47,10 @@ kotlin {
             implementation(compose.preview)
             implementation(libs.androidx.activity.compose)
             implementation(libs.androidx.core.splashscreen)
+            implementation(libs.ktor.client.okhttp)
+        }
+        iosMain.dependencies {
+            implementation(libs.ktor.client.darwin)
         }
         commonMain.dependencies {
             implementation(libs.kotlinx.serialization.core)
@@ -68,6 +72,14 @@ kotlin {
             implementation(libs.compottie.dot)
             implementation(libs.compottie.network)
             implementation(libs.navigation.compose)
+            implementation(libs.kermit)
+            implementation(libs.ktor.client.core)
+            implementation(libs.lifecycle.viewmodel)
+            implementation(libs.ktor.client.content.negotiation)
+            implementation(libs.ktor.serialization.kotlinx.json)
+            implementation(libs.ktor.client.logging)
+            implementation(libs.ktor.client.encoding)
+            implementation(libs.snackbar)
         }
         commonTest.dependencies {
             implementation(libs.kotlin.test)
@@ -108,6 +120,12 @@ android {
 
 dependencies {
     debugImplementation(compose.uiTooling)
+}
+project.configurations.configureEach {
+    resolutionStrategy {
+        force("androidx.emoji2:emoji2-views-helper:1.3.0")
+        force("androidx.emoji2:emoji2:1.3.0")
+    }
 }
 
 compose.desktop {

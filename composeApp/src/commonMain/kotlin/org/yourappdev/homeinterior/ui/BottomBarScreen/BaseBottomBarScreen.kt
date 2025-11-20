@@ -27,6 +27,8 @@ import androidx.navigation.NavHostController
 import androidx.navigation.compose.NavHost
 import androidx.navigation.compose.composable
 import androidx.navigation.compose.currentBackStackEntryAsState
+import androidx.navigation.compose.rememberNavController
+import co.touchlab.kermit.Logger
 import homeinterior.composeapp.generated.resources.*
 import org.jetbrains.compose.resources.painterResource
 import org.jetbrains.compose.resources.stringResource
@@ -47,9 +49,13 @@ import org.yourappdev.homeinterior.ui.theme.selectedNavItem
 import org.yourappdev.homeinterior.ui.theme.unselectedNavItem
 
 @Composable
-fun BaseBottomBarScreen(navController: NavHostController) {
+fun BaseBottomBarScreen() {
+
+    val navController = rememberNavController()
     val navBackStackEntry by navController.currentBackStackEntryAsState()
     val currentDestination = navBackStackEntry?.destination
+
+
 
     val shouldShowBottomBar = currentDestination?.route?.let { route ->
         route.contains("Create") ||
@@ -57,6 +63,7 @@ fun BaseBottomBarScreen(navController: NavHostController) {
                 route.contains("Explore") ||
                 route.contains("Account")
     } ?: false
+
 
     Scaffold(
         bottomBar = {

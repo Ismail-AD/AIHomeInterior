@@ -243,7 +243,7 @@ fun LoginScreen(onBack: () -> Unit = {}, onForgotPassword: () -> Unit = {}, onRe
                 color = buttonBack,
                 fontWeight = FontWeight.Bold
             ) {
-
+                onRegister()
             }
         }
     }

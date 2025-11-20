@@ -97,7 +97,7 @@ fun WelcomeScreen(
                 fontWeight = FontWeight.Normal,
             )
             ClickableText(title = "Login", textSize = 14.sp, fontWeight = FontWeight.Bold) {
-
+                onLogin()
             }
         }
     }
