@@ -1,6 +1,5 @@
 package org.yourappdev.homeinterior.ui.Authentication.Register
 
-import StackedSnackbarHost
 import androidx.compose.foundation.Image
 import androidx.compose.foundation.background
 import androidx.compose.foundation.clickable
@@ -27,53 +26,55 @@ import homeinterior.composeapp.generated.resources.hide_
 import homeinterior.composeapp.generated.resources.passicon
 import homeinterior.composeapp.generated.resources.person
 import homeinterior.composeapp.generated.resources.show_1_
+import kotlinx.coroutines.flow.SharedFlow
 import org.jetbrains.compose.resources.painterResource
+import org.koin.compose.viewmodel.koinViewModel
 import org.yourappdev.homeinterior.data.remote.util.ResultState
+import org.yourappdev.homeinterior.ui.Authentication.AuthViewModel
 import org.yourappdev.homeinterior.ui.UiUtils.BackIconButton
 import org.yourappdev.homeinterior.ui.UiUtils.ClickableText
+import org.yourappdev.homeinterior.ui.UiUtils.CustomSnackbar
 import org.yourappdev.homeinterior.ui.UiUtils.ProgressLoading
 import org.yourappdev.homeinterior.ui.UiUtils.rememberCustomSnackbarState
+import org.yourappdev.homeinterior.ui.common.base.CommonUiEvent
 import org.yourappdev.homeinterior.ui.theme.buttonBack
 import org.yourappdev.homeinterior.ui.theme.smallText
-import rememberStackedSnackbarHostState
 
 
 @Composable
-fun RegisterRoot(viewModel: RegisterViewModel, onRegisterSuccess: () -> Unit) {
+fun RegisterRoot(viewModel: AuthViewModel = koinViewModel(), onRegisterSuccess: () -> Unit) {
     val state by viewModel.registerState.collectAsState()
-    RegisterScreen(state, viewModel::onRegisterFormEvent, onRegisterSuccess)
+    RegisterScreen(state, viewModel.uiEvent, viewModel::onRegisterFormEvent, onRegisterSuccess)
 }
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
 fun RegisterScreen(
     state: RegisterState,
+    uiEvent: SharedFlow<CommonUiEvent>,
     onRegisterEvent: (event: RegisterEvent) -> Unit,
     onRegisterSuccess: () -> Unit
 ) {
     val snackBarState = rememberCustomSnackbarState()
 
-//    LaunchedEffect(state.registerResponse, key2 = state.fieldError) {
-//        if (state.fieldError != null) {
-//            snackBarState.showSnackbar(
-//                message = state.fieldError,
-//                duration = SnackbarDuration.Short
-//            )
-//        } else if (state.registerResponse is ResultState.Failure) {
-//            snackBarState.showSnackbar(
-//                message = state.registerResponse.msg,
-//                duration = SnackbarDuration.Short
-//            )
-//        } else if (state.registerResponse is ResultState.Success) {
-//            onRegisterSuccess()
-//        }
-//    }
+    LaunchedEffect(Unit) {
+        uiEvent.collect { event ->
+            when (event) {
+                is CommonUiEvent.ShowError -> {
+                    snackBarState.showError(event.message)
+                }
+
+                CommonUiEvent.NavigateToSuccess -> {
+                    onRegisterSuccess()
+                }
+            }
+        }
+    }
 
     Box(
         modifier = Modifier
             .fillMaxSize()
             .background(Color.White)
-            .padding(24.dp)
             .statusBarsPadding()
     ) {
         if (state.registerResponse is ResultState.Loading) {
@@ -82,6 +83,7 @@ fun RegisterScreen(
         Column(
             modifier = Modifier
                 .fillMaxSize()
+                .padding(24.dp)
         ) {
             BackIconButton {
 
@@ -272,5 +274,9 @@ fun RegisterScreen(
                 }
             }
         }
+        CustomSnackbar(
+            state = snackBarState,
+            duration = 3000L
+        )
     }
 }

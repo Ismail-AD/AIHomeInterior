@@ -4,11 +4,34 @@ import io.ktor.client.call.body
 import org.yourappdev.homeinterior.data.remote.service.AuthService
 import org.yourappdev.homeinterior.domain.model.RegisterRequest
 import org.yourappdev.homeinterior.domain.model.RegisterResponse
+import org.yourappdev.homeinterior.domain.model.VerifyResponse
 import org.yourappdev.homeinterior.domain.repo.AuthRepository
 
 class AuthRepositoryImpl(val authService: AuthService) : AuthRepository {
     override suspend fun register(request: RegisterRequest): RegisterResponse {
         val response = authService.register(request).body<RegisterResponse>()
+        return response
+    }
+
+    override suspend fun verifyOtp(
+        email: String,
+        otp: String
+    ): VerifyResponse {
+        val response = authService.verifyOtp(email = email, otp = otp).body<VerifyResponse>()
+        return response
+    }
+
+    override suspend fun resendOtp(email: String): VerifyResponse {
+        val response = authService.resendOtp(email = email).body<VerifyResponse>()
+        return response
+    }
+
+
+    override suspend fun login(
+        email: String,
+        password: String
+    ): VerifyResponse {
+        val response = authService.login(email = email, password = password).body<VerifyResponse>()
         return response
     }
 }

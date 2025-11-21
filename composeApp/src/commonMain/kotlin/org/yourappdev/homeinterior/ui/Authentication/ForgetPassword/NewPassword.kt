@@ -1,7 +1,8 @@
-package org.yourappdev.homeinterior.ui.Authentication
+package org.yourappdev.homeinterior.ui.Authentication.ForgetPassword
 
 import androidx.compose.foundation.Image
 import androidx.compose.foundation.background
+import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.shape.RoundedCornerShape
@@ -15,13 +16,16 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.ColorFilter
-import androidx.compose.ui.layout.ContentScale
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.input.KeyboardType
+import androidx.compose.ui.text.input.PasswordVisualTransformation
+import androidx.compose.ui.text.input.VisualTransformation
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import homeinterior.composeapp.generated.resources.Res
-import homeinterior.composeapp.generated.resources.emailicon
+import homeinterior.composeapp.generated.resources.hide_
+import homeinterior.composeapp.generated.resources.passicon
+import homeinterior.composeapp.generated.resources.show_1_
 import org.jetbrains.compose.resources.painterResource
 import org.yourappdev.homeinterior.ui.UiUtils.BackIconButton
 import org.yourappdev.homeinterior.ui.theme.buttonBack
@@ -29,8 +33,9 @@ import org.yourappdev.homeinterior.ui.theme.smallText
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
-fun ForgotPasswordScreen(onBack: () -> Unit = {}, onSubmit: () -> Unit = {}) {
-    var email by remember { mutableStateOf("") }
+fun NewPasswordScreen(onBack: () -> Unit = {}, onSubmit: () -> Unit = {}) {
+    var password by remember { mutableStateOf("") }
+    var show by remember { mutableStateOf(false) }
 
     Column(
         modifier = Modifier
@@ -65,29 +70,42 @@ fun ForgotPasswordScreen(onBack: () -> Unit = {}, onSubmit: () -> Unit = {}) {
 
         // Email field
         Text(
-            text = "Email",
+            text = "Enter New Password",
             fontSize = 14.sp,
-            color = Color(0xFF666666),
+            color = smallText,
             modifier = Modifier.padding(bottom = 8.dp)
         )
 
         OutlinedTextField(
-            value = email,
-            onValueChange = { email = it },
+            value = password,
+            onValueChange = { password = it },
             modifier = Modifier.fillMaxWidth(),
             placeholder = {
                 Text(
-                    "Ex. abc@example.com",
+                    "••••••••••",
                     color = Color(0xFFCCCCCC)
                 )
             },
             leadingIcon = {
                 Image(
-                    painter = painterResource(Res.drawable.emailicon),
+                    painter = painterResource(Res.drawable.passicon),
                     contentDescription = null,
                     colorFilter = ColorFilter.tint(color = LocalContentColor.current)
                 )
             },
+            trailingIcon = {
+                Box(modifier = Modifier.size(30.dp).clip(CircleShape).clickable {
+                    show = !show
+                }, contentAlignment = Alignment.Center) {
+                    Image(
+                        painter = painterResource(if (show) Res.drawable.show_1_ else Res.drawable.hide_),
+                        contentDescription = "Close",
+                        colorFilter = ColorFilter.tint(color = buttonBack),
+                        modifier = Modifier.size(23.dp)
+                    )
+                }
+            },
+            visualTransformation = if (show) VisualTransformation.None else PasswordVisualTransformation(),
             shape = RoundedCornerShape(12.dp),
             colors = OutlinedTextFieldDefaults.colors(
                 unfocusedBorderColor = Color(0xFFE0E0E0),
@@ -95,7 +113,7 @@ fun ForgotPasswordScreen(onBack: () -> Unit = {}, onSubmit: () -> Unit = {}) {
                 focusedLeadingIconColor = buttonBack,
                 unfocusedLeadingIconColor = Color(0xffDBDBDB)
             ),
-            keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Email)
+            keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Password)
         )
 
         Spacer(modifier = Modifier.height(32.dp))

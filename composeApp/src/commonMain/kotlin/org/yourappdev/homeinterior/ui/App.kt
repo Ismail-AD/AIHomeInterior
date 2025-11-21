@@ -2,20 +2,19 @@ package org.yourappdev.homeinterior.ui
 
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.runtime.*
-import androidx.lifecycle.viewmodel.compose.viewModel
 import androidx.navigation.compose.NavHost
 import androidx.navigation.compose.composable
 import androidx.navigation.compose.rememberNavController
 import org.jetbrains.compose.ui.tooling.preview.Preview
-import org.yourappdev.homeinterior.data.remote.httpClient
-import org.yourappdev.homeinterior.data.remote.service.AuthService
-import org.yourappdev.homeinterior.data.repository.AuthRepositoryImpl
+import org.koin.compose.KoinApplication
+import org.koin.compose.viewmodel.koinViewModel
+import org.yourappdev.homeinterior.di.appModule
 import org.yourappdev.homeinterior.navigation.Routes
-import org.yourappdev.homeinterior.ui.Authentication.LoginScreen
+import org.yourappdev.homeinterior.ui.Authentication.Login.LoginScreen
 import org.yourappdev.homeinterior.ui.Authentication.Register.RegisterRoot
-import org.yourappdev.homeinterior.ui.Authentication.Register.RegisterViewModel
-import org.yourappdev.homeinterior.ui.Authentication.VerificationScreen
-import org.yourappdev.homeinterior.ui.Authentication.WelcomeScreen
+import org.yourappdev.homeinterior.ui.Authentication.AuthViewModel
+import org.yourappdev.homeinterior.ui.Authentication.Verification.VerificationRoot
+import org.yourappdev.homeinterior.ui.Authentication.Login.WelcomeScreen
 import org.yourappdev.homeinterior.ui.BottomBarScreen.BaseBottomBarScreen
 import org.yourappdev.homeinterior.ui.OnBoarding.BaseScreen
 import org.yourappdev.homeinterior.ui.OnBoarding.SplashScreen
@@ -24,42 +23,51 @@ import org.yourappdev.homeinterior.ui.theme.AppTypography
 @Composable
 @Preview
 fun App() {
-    val navController = rememberNavController()
-    MaterialTheme(typography = AppTypography()) {
-        NavHost(navController, startDestination = Routes.Welcome) {
-            composable<Routes.Welcome> {
-                WelcomeScreen(onLogin = {
-                    navController.navigate(Routes.Login)
-                })
-            }
-            composable<Routes.Login> {
-                LoginScreen(onRegister = {
-                    navController.navigate(Routes.Register)
-                })
-            }
-            composable<Routes.Splash> {
-                SplashScreen() {
-                    navController.navigate(Routes.OnBoarding)
+    KoinApplication(application = {
+        modules(appModule())
+    }) {
+        val navController = rememberNavController()
+        MaterialTheme(typography = AppTypography()) {
+            NavHost(navController, startDestination = Routes.Welcome) {
+                composable<Routes.Welcome> {
+                    WelcomeScreen(onLogin = {
+                        navController.navigate(Routes.Login)
+                    })
                 }
-            }
-            composable<Routes.Verification> {
-                VerificationScreen { }
-            }
-            composable<Routes.Register> {
-                val viewModel: RegisterViewModel = viewModel<RegisterViewModel> {
-                    RegisterViewModel(AuthRepositoryImpl(AuthService(client = httpClient)))
+                composable<Routes.Login> {
+                    LoginScreen(onRegister = {
+                        navController.navigate(Routes.Register)
+                    })
                 }
-                RegisterRoot(viewModel, onRegisterSuccess = {
-                    navController.navigate(Routes.Verification)
-                })
-            }
-            composable<Routes.OnBoarding> {
-                BaseScreen() {
-                    navController.navigate(Routes.BaseAppScreen)
+                composable<Routes.Splash> {
+                    SplashScreen() {
+                        navController.navigate(Routes.OnBoarding)
+                    }
                 }
-            }
-            composable<Routes.BaseAppScreen> {
-                BaseBottomBarScreen()
+                composable<Routes.Verification> {
+                    val parent = remember(navController) {
+                        navController.previousBackStackEntry
+                    }
+                    parent?.let {
+                        val authViewModel: AuthViewModel = koinViewModel(viewModelStoreOwner = it)
+                        VerificationRoot(authViewModel) {
+                            navController.navigate(Routes.OnBoarding)
+                        }
+                    }
+                }
+                composable<Routes.Register> {
+                    RegisterRoot(onRegisterSuccess = {
+                        navController.navigate(Routes.Verification)
+                    })
+                }
+                composable<Routes.OnBoarding> {
+                    BaseScreen() {
+                        navController.navigate(Routes.BaseAppScreen)
+                    }
+                }
+                composable<Routes.BaseAppScreen> {
+                    BaseBottomBarScreen()
+                }
             }
         }
     }
