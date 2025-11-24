@@ -2,6 +2,7 @@ package org.yourappdev.homeinterior.ui.Authentication
 
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
+import com.russhwolf.settings.Settings
 import kotlinx.coroutines.flow.MutableSharedFlow
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
@@ -14,8 +15,9 @@ import org.yourappdev.homeinterior.domain.repo.AuthRepository
 import org.yourappdev.homeinterior.ui.Authentication.Register.RegisterEvent
 import org.yourappdev.homeinterior.ui.Authentication.Register.RegisterState
 import org.yourappdev.homeinterior.ui.common.base.CommonUiEvent
+import org.yourappdev.homeinterior.utils.Constants.LOGIN
 
-class AuthViewModel(val repository: AuthRepository) : ViewModel() {
+class AuthViewModel(val repository: AuthRepository, val settings: Settings) : ViewModel() {
     private val _state = MutableStateFlow(RegisterState())
     val state: StateFlow<RegisterState> = _state.asStateFlow()
 
@@ -71,6 +73,7 @@ class AuthViewModel(val repository: AuthRepository) : ViewModel() {
 
                 if (response.success) {
                     _state.value = _state.value.copy(verifyResponse = ResultState.Success(response))
+                    settings.putBoolean(LOGIN, true)
                     _uiEvent.emit(CommonUiEvent.ShowSuccess(response.message))
                     _uiEvent.emit(CommonUiEvent.NavigateToSuccess)
                 } else {

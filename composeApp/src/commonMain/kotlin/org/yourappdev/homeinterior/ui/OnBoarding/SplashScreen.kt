@@ -6,6 +6,8 @@ import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
+import androidx.compose.runtime.collectAsState
+import androidx.compose.runtime.getValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.geometry.Offset
@@ -13,13 +15,19 @@ import androidx.compose.ui.graphics.Brush
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.sp
+import androidx.navigation.NavHostController
 import kotlinx.coroutines.delay
+import org.koin.compose.viewmodel.koinViewModel
+import org.yourappdev.homeinterior.navigation.NavigationViewModel
 
 @Composable
-fun SplashScreen(moveToMain: () -> Unit) {
-    LaunchedEffect(Unit) {
-        delay(2000)
-        moveToMain()
+fun SplashScreen(navigationViewModel: NavigationViewModel = koinViewModel(), navController: NavHostController) {
+    val state by navigationViewModel.state.collectAsState()
+    LaunchedEffect(state) {
+        if (state.startDestination.isNotBlank()) {
+            delay(1000)
+            navController.navigate(state.startDestination)
+        }
     }
     Box(
         modifier = Modifier

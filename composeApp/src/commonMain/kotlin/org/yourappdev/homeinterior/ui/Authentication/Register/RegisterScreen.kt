@@ -43,7 +43,7 @@ import org.yourappdev.homeinterior.ui.theme.smallText
 
 @Composable
 fun RegisterRoot(viewModel: AuthViewModel = koinViewModel(), onRegisterSuccess: () -> Unit) {
-    val state by viewModel.registerState.collectAsState()
+    val state by viewModel.state.collectAsState()
     RegisterScreen(state, viewModel.uiEvent, viewModel::onRegisterFormEvent, onRegisterSuccess)
 }
 

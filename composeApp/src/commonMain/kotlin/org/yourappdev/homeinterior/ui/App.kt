@@ -5,11 +5,14 @@ import androidx.compose.runtime.*
 import androidx.navigation.compose.NavHost
 import androidx.navigation.compose.composable
 import androidx.navigation.compose.rememberNavController
+import androidx.room.RoomDatabase
 import org.jetbrains.compose.ui.tooling.preview.Preview
 import org.koin.compose.KoinApplication
 import org.koin.compose.viewmodel.koinViewModel
+import org.yourappdev.homeinterior.data.local.AppDatabase
 import org.yourappdev.homeinterior.di.appModule
 import org.yourappdev.homeinterior.navigation.Routes
+import org.yourappdev.homeinterior.platformModule
 import org.yourappdev.homeinterior.ui.Authentication.Login.LoginScreen
 import org.yourappdev.homeinterior.ui.Authentication.Register.RegisterRoot
 import org.yourappdev.homeinterior.ui.Authentication.AuthViewModel
@@ -17,6 +20,7 @@ import org.yourappdev.homeinterior.ui.Authentication.Verification.VerificationRo
 import org.yourappdev.homeinterior.ui.Authentication.Login.WelcomeScreen
 import org.yourappdev.homeinterior.ui.BottomBarScreen.BaseBottomBarScreen
 import org.yourappdev.homeinterior.ui.OnBoarding.BaseScreen
+import org.yourappdev.homeinterior.ui.OnBoarding.OnBoardingViewModel
 import org.yourappdev.homeinterior.ui.OnBoarding.SplashScreen
 import org.yourappdev.homeinterior.ui.theme.AppTypography
 
@@ -24,11 +28,11 @@ import org.yourappdev.homeinterior.ui.theme.AppTypography
 @Preview
 fun App() {
     KoinApplication(application = {
-        modules(appModule())
+        modules(appModule() + platformModule())
     }) {
         val navController = rememberNavController()
         MaterialTheme(typography = AppTypography()) {
-            NavHost(navController, startDestination = Routes.Welcome) {
+            NavHost(navController, startDestination = Routes.Splash) {
                 composable<Routes.Welcome> {
                     WelcomeScreen(onLogin = {
                         navController.navigate(Routes.Login)
@@ -40,9 +44,7 @@ fun App() {
                     })
                 }
                 composable<Routes.Splash> {
-                    SplashScreen() {
-                        navController.navigate(Routes.OnBoarding)
-                    }
+                    SplashScreen(navController = navController)
                 }
                 composable<Routes.Verification> {
                     val parent = remember(navController) {
@@ -61,7 +63,9 @@ fun App() {
                     })
                 }
                 composable<Routes.OnBoarding> {
+                    val onBoardingViewModel: OnBoardingViewModel = koinViewModel()
                     BaseScreen() {
+                        onBoardingViewModel.onBoardingDone()
                         navController.navigate(Routes.BaseAppScreen)
                     }
                 }

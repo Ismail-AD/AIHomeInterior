@@ -7,5 +7,5 @@ import org.yourappdev.homeinterior.domain.repo.AuthRepository
 
 val dataModule = module {
     single { AuthService(get()) }
-    single<AuthRepository> { AuthRepositoryImpl(get()) }
+    single<AuthRepository> { AuthRepositoryImpl(get(),get()) }
 }
