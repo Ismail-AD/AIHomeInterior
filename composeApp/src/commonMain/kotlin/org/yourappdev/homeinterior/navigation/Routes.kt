@@ -74,4 +74,16 @@ sealed class Routes {
     @Serializable
     @SerialName("profile")
     data object Profile : Routes()
+
+    @Serializable
+    @SerialName("forgetEmail")
+    data object ForgetEmail : Routes()
+
+    @Serializable
+    @SerialName("forgetOtp")
+    data object ForgetOTP : Routes()
+
+    @Serializable
+    @SerialName("forgetNewPass")
+    data object ForgetNewPass : Routes()
 }

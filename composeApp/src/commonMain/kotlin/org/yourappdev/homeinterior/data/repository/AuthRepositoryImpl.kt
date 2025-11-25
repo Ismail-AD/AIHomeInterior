@@ -44,6 +44,53 @@ class AuthRepositoryImpl(val authService: AuthService, val userProfileDao: Profi
         password: String
     ): VerifyResponse {
         val response = authService.login(email = email, password = password).body<VerifyResponse>()
+        if (response.success && response.user != null) {
+            userProfileDao.addUserInfo(
+                UserInfoEntity(
+                    id = response.user.id,
+                    email = response.user.email,
+                    fullname = response.user.fullname,
+                    token = response.token
+                )
+            )
+        }
         return response
     }
+    override suspend fun forgetPasswordRequest(email: String): RegisterResponse {
+        val response = authService
+            .forgetPasswordRequest(email)
+            .body<RegisterResponse>()
+
+        return response
+    }
+
+    override suspend fun forgetPasswordVerify(
+        email: String,
+        otp: String
+    ): RegisterResponse {
+        val response = authService
+            .forgetPasswordVerify(email = email, otp = otp)
+            .body<RegisterResponse>()
+
+        return response
+    }
+
+    override suspend fun forgetPasswordReset(
+        email: String,
+        password: String,
+        confirm_password: String
+    ): RegisterResponse {
+
+        val response = authService
+            .forgetPasswordReset(
+                email = email,
+                password = password,
+                confirm_password = confirm_password
+            )
+            .body<RegisterResponse>()
+
+        return response
+    }
+
+
 }

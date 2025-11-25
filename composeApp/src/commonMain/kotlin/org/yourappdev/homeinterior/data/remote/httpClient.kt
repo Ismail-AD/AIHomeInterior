@@ -32,7 +32,11 @@ val httpClient = HttpClient {
     }
 
     install(Logging) {
-        logger = Logger.DEFAULT
+        logger = object : Logger {
+            override fun log(message: String) {
+                co.touchlab.kermit.Logger.i { "KTOR_LOG: $message" } // Console log
+            }
+        }
         level = LogLevel.ALL
         sanitizeHeader { header ->
             header == HttpHeaders.Authorization

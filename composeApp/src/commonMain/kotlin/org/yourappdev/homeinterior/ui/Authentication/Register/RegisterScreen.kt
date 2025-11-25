@@ -42,14 +42,15 @@ import org.yourappdev.homeinterior.ui.theme.smallText
 
 
 @Composable
-fun RegisterRoot(viewModel: AuthViewModel = koinViewModel(), onRegisterSuccess: () -> Unit) {
+fun RegisterRoot(onBackClick: () -> Unit, viewModel: AuthViewModel = koinViewModel(), onRegisterSuccess: () -> Unit) {
     val state by viewModel.state.collectAsState()
-    RegisterScreen(state, viewModel.uiEvent, viewModel::onRegisterFormEvent, onRegisterSuccess)
+    RegisterScreen(onBackClick, state, viewModel.uiEvent, viewModel::onRegisterFormEvent, onRegisterSuccess)
 }
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
 fun RegisterScreen(
+    onBackClick: () -> Unit,
     state: RegisterState,
     uiEvent: SharedFlow<CommonUiEvent>,
     onRegisterEvent: (event: RegisterEvent) -> Unit,
@@ -90,7 +91,7 @@ fun RegisterScreen(
                 .padding(24.dp)
         ) {
             BackIconButton {
-
+                onBackClick()
             }
 
             Spacer(modifier = Modifier.height(24.dp))

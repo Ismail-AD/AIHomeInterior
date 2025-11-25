@@ -26,114 +26,164 @@ import homeinterior.composeapp.generated.resources.Res
 import homeinterior.composeapp.generated.resources.hide_
 import homeinterior.composeapp.generated.resources.passicon
 import homeinterior.composeapp.generated.resources.show_1_
+import kotlinx.coroutines.flow.SharedFlow
 import org.jetbrains.compose.resources.painterResource
+import org.koin.compose.viewmodel.koinViewModel
+import org.yourappdev.homeinterior.data.remote.util.ResultState
+import org.yourappdev.homeinterior.navigation.Routes
+import org.yourappdev.homeinterior.ui.Authentication.AuthViewModel
+import org.yourappdev.homeinterior.ui.Authentication.Register.RegisterEvent
+import org.yourappdev.homeinterior.ui.Authentication.Register.RegisterState
 import org.yourappdev.homeinterior.ui.UiUtils.BackIconButton
+import org.yourappdev.homeinterior.ui.UiUtils.ProgressLoading
+import org.yourappdev.homeinterior.ui.UiUtils.rememberCustomSnackbarState
+import org.yourappdev.homeinterior.ui.common.base.CommonUiEvent
 import org.yourappdev.homeinterior.ui.theme.buttonBack
 import org.yourappdev.homeinterior.ui.theme.smallText
 
+@Composable
+fun NewPassRoot(
+    authViewModel: AuthViewModel = koinViewModel(),
+    onBack: () -> Unit = {},
+    onSuccess: () -> Unit = {}
+) {
+    val state by authViewModel.state.collectAsState()
+    NewPasswordScreen(state, authViewModel.uiEvent, onBack, onSuccess, authViewModel::onRegisterFormEvent)
+}
+
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
-fun NewPasswordScreen(onBack: () -> Unit = {}, onSubmit: () -> Unit = {}) {
-    var password by remember { mutableStateOf("") }
-    var show by remember { mutableStateOf(false) }
+fun NewPasswordScreen(
+    state: RegisterState,
+    uiEvent: SharedFlow<CommonUiEvent>,
+    onBack: () -> Unit,
+    onSuccess: () -> Unit,
+    onAuthEvent: (event: RegisterEvent) -> Unit
+) {
 
-    Column(
+    val snackBarState = rememberCustomSnackbarState()
+    LaunchedEffect(Unit) {
+        uiEvent.collect { event ->
+            when (event) {
+                is CommonUiEvent.ShowError -> {
+                    snackBarState.showError(event.message)
+                }
+
+                CommonUiEvent.NavigateToSuccess -> {
+                    onSuccess()
+                }
+
+                is CommonUiEvent.ShowSuccess -> {
+                    snackBarState.showSuccess(event.message)
+                }
+            }
+        }
+    }
+    Box(
         modifier = Modifier
             .fillMaxSize()
             .background(Color.White)
-            .padding(24.dp)
             .statusBarsPadding()
     ) {
-        BackIconButton {
-
+        if (state.forgetPasswordResetResponse is ResultState.Loading) {
+            ProgressLoading()
         }
-
-        Spacer(modifier = Modifier.height(24.dp))
-
-        Text(
-            text = "Forgot Password?",
-            fontSize = 32.sp,
-            fontWeight = FontWeight.Bold,
-            letterSpacing = (-0.8).sp,
-            color = buttonBack
-        )
-
-        Text(
-            text = "Recover you password if you have forgot the password!",
-            fontSize = 14.sp,
-            color = smallText,
-            lineHeight = 16.sp,
-            modifier = Modifier.padding(top = 8.dp)
-        )
-
-        Spacer(modifier = Modifier.height(20.dp))
-
-        // Email field
-        Text(
-            text = "Enter New Password",
-            fontSize = 14.sp,
-            color = smallText,
-            modifier = Modifier.padding(bottom = 8.dp)
-        )
-
-        OutlinedTextField(
-            value = password,
-            onValueChange = { password = it },
-            modifier = Modifier.fillMaxWidth(),
-            placeholder = {
-                Text(
-                    "••••••••••",
-                    color = Color(0xFFCCCCCC)
-                )
-            },
-            leadingIcon = {
-                Image(
-                    painter = painterResource(Res.drawable.passicon),
-                    contentDescription = null,
-                    colorFilter = ColorFilter.tint(color = LocalContentColor.current)
-                )
-            },
-            trailingIcon = {
-                Box(modifier = Modifier.size(30.dp).clip(CircleShape).clickable {
-                    show = !show
-                }, contentAlignment = Alignment.Center) {
-                    Image(
-                        painter = painterResource(if (show) Res.drawable.show_1_ else Res.drawable.hide_),
-                        contentDescription = "Close",
-                        colorFilter = ColorFilter.tint(color = buttonBack),
-                        modifier = Modifier.size(23.dp)
-                    )
-                }
-            },
-            visualTransformation = if (show) VisualTransformation.None else PasswordVisualTransformation(),
-            shape = RoundedCornerShape(12.dp),
-            colors = OutlinedTextFieldDefaults.colors(
-                unfocusedBorderColor = Color(0xFFE0E0E0),
-                focusedBorderColor = buttonBack,
-                focusedLeadingIconColor = buttonBack,
-                unfocusedLeadingIconColor = Color(0xffDBDBDB)
-            ),
-            keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Password)
-        )
-
-        Spacer(modifier = Modifier.height(32.dp))
-
-        // Submit button
-        Button(
-            onClick = onSubmit,
+        Column(
             modifier = Modifier
-                .fillMaxWidth()
-                .height(56.dp),
-            shape = RoundedCornerShape(12.dp),
-            colors = ButtonDefaults.buttonColors(
-                containerColor = buttonBack
-            )
+                .fillMaxSize()
+                .padding(24.dp)
         ) {
+            BackIconButton {
+                onBack()
+            }
+
+            Spacer(modifier = Modifier.height(24.dp))
+
             Text(
-                text = "Submit",
-                fontSize = 16.sp,
-                fontWeight = FontWeight.Medium
+                text = "Forgot Password?",
+                fontSize = 32.sp,
+                fontWeight = FontWeight.Bold,
+                letterSpacing = (-0.8).sp,
+                color = buttonBack
             )
+
+            Text(
+                text = "Recover you password if you have forgot the password!",
+                fontSize = 14.sp,
+                color = smallText,
+                lineHeight = 16.sp,
+                modifier = Modifier.padding(top = 8.dp)
+            )
+
+            Spacer(modifier = Modifier.height(20.dp))
+
+            // Email field
+            Text(
+                text = "Enter New Password",
+                fontSize = 14.sp,
+                color = smallText,
+                modifier = Modifier.padding(bottom = 8.dp)
+            )
+
+            OutlinedTextField(
+                value = state.newPassword,
+                onValueChange = { onAuthEvent(RegisterEvent.NewPasswordUpdate(it)) },
+                modifier = Modifier.fillMaxWidth(),
+                placeholder = {
+                    Text(
+                        "••••••••••",
+                        color = Color(0xFFCCCCCC)
+                    )
+                },
+                leadingIcon = {
+                    Image(
+                        painter = painterResource(Res.drawable.passicon),
+                        contentDescription = null,
+                        colorFilter = ColorFilter.tint(color = LocalContentColor.current)
+                    )
+                },
+                trailingIcon = {
+                    Box(modifier = Modifier.size(30.dp).clip(CircleShape).clickable {
+                        onAuthEvent(RegisterEvent.TogglePassword(!state.showPassword))
+                    }, contentAlignment = Alignment.Center) {
+                        Image(
+                            painter = painterResource(if (state.showPassword) Res.drawable.show_1_ else Res.drawable.hide_),
+                            contentDescription = "Close",
+                            colorFilter = ColorFilter.tint(color = buttonBack),
+                            modifier = Modifier.size(23.dp)
+                        )
+                    }
+                },
+                visualTransformation = if (state.showPassword) VisualTransformation.None else PasswordVisualTransformation(),
+                shape = RoundedCornerShape(12.dp),
+                colors = OutlinedTextFieldDefaults.colors(
+                    unfocusedBorderColor = Color(0xFFE0E0E0),
+                    focusedBorderColor = buttonBack,
+                    focusedLeadingIconColor = buttonBack,
+                    unfocusedLeadingIconColor = Color(0xffDBDBDB)
+                ),
+                keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Password)
+            )
+
+            Spacer(modifier = Modifier.height(32.dp))
+
+            // Submit button
+            Button(
+                onClick = { onAuthEvent(RegisterEvent.ForgetPasswordReset) },
+                modifier = Modifier
+                    .fillMaxWidth()
+                    .height(56.dp),
+                shape = RoundedCornerShape(12.dp),
+                colors = ButtonDefaults.buttonColors(
+                    containerColor = buttonBack
+                )
+            ) {
+                Text(
+                    text = "Submit",
+                    fontSize = 16.sp,
+                    fontWeight = FontWeight.Medium
+                )
+            }
         }
     }
 }

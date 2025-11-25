@@ -9,6 +9,7 @@ import androidx.room.RoomDatabase
 import org.jetbrains.compose.ui.tooling.preview.Preview
 import org.koin.compose.KoinApplication
 import org.koin.compose.viewmodel.koinViewModel
+import org.koin.dsl.KoinAppDeclaration
 import org.yourappdev.homeinterior.data.local.AppDatabase
 import org.yourappdev.homeinterior.di.appModule
 import org.yourappdev.homeinterior.navigation.Routes
@@ -16,6 +17,10 @@ import org.yourappdev.homeinterior.platformModule
 import org.yourappdev.homeinterior.ui.Authentication.Login.LoginScreen
 import org.yourappdev.homeinterior.ui.Authentication.Register.RegisterRoot
 import org.yourappdev.homeinterior.ui.Authentication.AuthViewModel
+import org.yourappdev.homeinterior.ui.Authentication.ForgetPassword.ForgetEmailRoot
+import org.yourappdev.homeinterior.ui.Authentication.ForgetPassword.ForgetOTPRoot
+import org.yourappdev.homeinterior.ui.Authentication.ForgetPassword.NewPassRoot
+import org.yourappdev.homeinterior.ui.Authentication.Login.LoginRoot
 import org.yourappdev.homeinterior.ui.Authentication.Verification.VerificationRoot
 import org.yourappdev.homeinterior.ui.Authentication.Login.WelcomeScreen
 import org.yourappdev.homeinterior.ui.BottomBarScreen.BaseBottomBarScreen
@@ -26,8 +31,9 @@ import org.yourappdev.homeinterior.ui.theme.AppTypography
 
 @Composable
 @Preview
-fun App() {
+fun App(koinAppDeclaration: KoinAppDeclaration? = null) {
     KoinApplication(application = {
+        koinAppDeclaration?.invoke(this)
         modules(appModule() + platformModule())
     }) {
         val navController = rememberNavController()
@@ -39,26 +45,68 @@ fun App() {
                     })
                 }
                 composable<Routes.Login> {
-                    LoginScreen(onRegister = {
-                        navController.navigate(Routes.Register)
-                    })
+                    LoginRoot(navController = navController)
                 }
                 composable<Routes.Splash> {
                     SplashScreen(navController = navController)
                 }
+                composable<Routes.ForgetEmail> {
+                    ForgetEmailRoot(onBack = {
+                        navController.navigateUp()
+                    }, onSuccess = {
+                        navController.navigate(Routes.ForgetOTP)
+                    })
+                }
+
+                composable<Routes.ForgetOTP> {
+                    val parent = remember(navController) {
+                        navController.previousBackStackEntry
+                    }
+                    parent?.let {
+                        val authViewModel: AuthViewModel = koinViewModel(viewModelStoreOwner = it)
+                        ForgetOTPRoot(onBackClick = {
+                            navController.navigateUp()
+                        }, authViewModel = authViewModel, onSuccess = {
+                            navController.navigate(Routes.ForgetNewPass)
+                        })
+                    }
+                }
+
+                composable<Routes.ForgetNewPass> {
+                    val parent = remember(it) {
+                        navController.getBackStackEntry(Routes.ForgetEmail)
+                    }
+
+                    val authViewModel: AuthViewModel = koinViewModel(viewModelStoreOwner = parent)
+                    NewPassRoot(authViewModel, onBack = {
+                        navController.navigateUp()
+                    }, onSuccess = {
+                        navController.navigate(Routes.Login) {
+                            popUpTo(Routes.Login) {
+                                inclusive = false
+                            }
+                        }
+                    })
+
+                }
+
                 composable<Routes.Verification> {
                     val parent = remember(navController) {
                         navController.previousBackStackEntry
                     }
                     parent?.let {
                         val authViewModel: AuthViewModel = koinViewModel(viewModelStoreOwner = it)
-                        VerificationRoot(authViewModel) {
+                        VerificationRoot(onBackClick = {
+                            navController.navigateUp()
+                        }, authViewModel) {
                             navController.navigate(Routes.OnBoarding)
                         }
                     }
                 }
                 composable<Routes.Register> {
-                    RegisterRoot(onRegisterSuccess = {
+                    RegisterRoot(onBackClick = {
+                        navController.navigateUp()
+                    }, onRegisterSuccess = {
                         navController.navigate(Routes.Verification)
                     })
                 }
