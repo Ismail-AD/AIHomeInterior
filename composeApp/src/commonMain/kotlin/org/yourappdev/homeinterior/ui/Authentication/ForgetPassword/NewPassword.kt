@@ -162,7 +162,8 @@ fun NewPasswordScreen(
                     focusedLeadingIconColor = buttonBack,
                     unfocusedLeadingIconColor = Color(0xffDBDBDB)
                 ),
-                keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Password)
+                keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Password),
+                singleLine = true
             )
 
             Spacer(modifier = Modifier.height(32.dp))

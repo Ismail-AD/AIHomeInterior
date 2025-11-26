@@ -1,5 +1,7 @@
 package org.yourappdev.homeinterior.data.remote
 
+import com.russhwolf.settings.Settings
+import com.russhwolf.settings.get
 import io.ktor.client.HttpClient
 import io.ktor.client.plugins.contentnegotiation.ContentNegotiation
 import io.ktor.client.plugins.defaultRequest
@@ -8,38 +10,54 @@ import io.ktor.client.plugins.logging.LogLevel
 import io.ktor.client.plugins.logging.Logger
 import io.ktor.client.plugins.logging.Logging
 import io.ktor.client.request.header
+import io.ktor.http.ContentType
 import io.ktor.http.HttpHeaders
+import io.ktor.http.contentType
 import io.ktor.serialization.kotlinx.json.json
 import kotlinx.serialization.json.Json
+import org.yourappdev.homeinterior.data.local.dao.ProfileDao
+import org.yourappdev.homeinterior.data.local.entities.UserInfoEntity
+import org.yourappdev.homeinterior.utils.Constants
 
 
 const val BASE_URL = "https://interior.shabbirhussain.com/api/"
 
-val httpClient = HttpClient {
-    install(ContentNegotiation) {
-        json(
-            Json {
-                prettyPrint = true
-                isLenient = true
-                ignoreUnknownKeys = true
-                explicitNulls = false
-            }
-        )
-    }
-    defaultRequest {
-        header("Content-Type", "application/json")
-        url(BASE_URL)
-    }
-
-    install(Logging) {
-        logger = object : Logger {
-            override fun log(message: String) {
-                co.touchlab.kermit.Logger.i { "KTOR_LOG: $message" } // Console log
-            }
+fun createHttpClientManual(
+    settings: Settings
+): HttpClient {
+    return HttpClient {
+        install(ContentNegotiation) {
+            json(
+                Json {
+                    prettyPrint = true
+                    isLenient = true
+                    ignoreUnknownKeys = true
+                    explicitNulls = false
+                }
+            )
         }
-        level = LogLevel.ALL
-        sanitizeHeader { header ->
-            header == HttpHeaders.Authorization
+
+        defaultRequest {
+            url(BASE_URL)
+
+            val bt = settings.getString(Constants.BT, "")
+
+            co.touchlab.kermit.Logger.i("MYTOKEN") { bt }
+            header(HttpHeaders.Authorization, "Bearer $bt")
+
+            contentType(ContentType.Application.Json)
+        }
+
+        install(Logging) {
+            logger = object : Logger {
+                override fun log(message: String) {
+                    co.touchlab.kermit.Logger.i { "KTOR_LOG: $message" }
+                }
+            }
+            level = LogLevel.ALL
+            sanitizeHeader { header ->
+                header == HttpHeaders.Authorization
+            }
         }
     }
 }

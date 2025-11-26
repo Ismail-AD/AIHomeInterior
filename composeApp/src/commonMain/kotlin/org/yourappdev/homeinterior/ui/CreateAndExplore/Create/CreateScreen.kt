@@ -1,6 +1,16 @@
-package org.yourappdev.homeinterior.ui.Create
+package org.yourappdev.homeinterior.ui.CreateAndExplore.Create
 
 
+import androidx.compose.animation.AnimatedContent
+import androidx.compose.animation.core.LinearEasing
+import androidx.compose.animation.core.RepeatMode
+import androidx.compose.animation.core.animateFloat
+import androidx.compose.animation.core.infiniteRepeatable
+import androidx.compose.animation.core.rememberInfiniteTransition
+import androidx.compose.animation.core.tween
+import androidx.compose.animation.fadeIn
+import androidx.compose.animation.fadeOut
+import androidx.compose.animation.togetherWith
 import androidx.compose.foundation.Image
 import androidx.compose.foundation.background
 import androidx.compose.foundation.clickable
@@ -13,31 +23,48 @@ import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.foundation.verticalScroll
 import androidx.compose.material3.*
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.collectAsState
+import androidx.compose.runtime.getValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
+import androidx.compose.ui.draw.drawBehind
+import androidx.compose.ui.geometry.Offset
 import androidx.compose.ui.graphics.Brush
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.ColorFilter
+import androidx.compose.ui.layout.ContentScale
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
+import co.touchlab.kermit.Logger
+import coil3.compose.AsyncImage
+import coil3.compose.LocalPlatformContext
+import coil3.request.ImageRequest
+import coil3.request.crossfade
 import homeinterior.composeapp.generated.resources.Res
 import homeinterior.composeapp.generated.resources.add_2_24px
 import homeinterior.composeapp.generated.resources.createpageimage
 import homeinterior.composeapp.generated.resources.premiumicon
+import homeinterior.composeapp.generated.resources.room_placeholder
+import homeinterior.composeapp.generated.resources.roomplaceholder
 import org.jetbrains.compose.resources.painterResource
-import org.jetbrains.compose.resources.stringResource
+import org.koin.compose.viewmodel.koinViewModel
+import org.yourappdev.homeinterior.data.remote.BASE_URL
+import org.yourappdev.homeinterior.domain.model.Room
+import org.yourappdev.homeinterior.ui.CreateAndExplore.RoomsViewModel
+import org.yourappdev.homeinterior.utils.Constants
 
-data class RoomCategory(
-    val name: String,
-    val imageRes: Int? = null,
-    val height: Int = 126
-)
 
 @Composable
-fun CreateScreen(onClick: () -> Unit) {
+fun CreateScreen(
+    viewModel: RoomsViewModel = koinViewModel(),
+    onPremiumClick: () -> Unit = {},
+    onAddPhotoClick: () -> Unit = {},
+    onRoomClick: (Room) -> Unit = {}
+) {
+    val state by viewModel.state.collectAsState()
     val scrollState = rememberScrollState()
 
     Column(
@@ -47,14 +74,15 @@ fun CreateScreen(onClick: () -> Unit) {
             .padding(top = 10.dp),
         verticalArrangement = Arrangement.spacedBy(32.dp)
     ) {
-        Header() {
-            onClick()
-        }
+        Header(onClick = onPremiumClick)
         EmptyStateCard() {
 
         }
         Column(modifier = Modifier.verticalScroll(scrollState), verticalArrangement = Arrangement.spacedBy(32.dp)) {
-            TrendingSection()
+            TrendingSection(
+                rooms = state.trendingRooms,
+                onRoomClick = onRoomClick
+            )
             RecentFilesSection()
         }
     }
@@ -63,7 +91,7 @@ fun CreateScreen(onClick: () -> Unit) {
 @Composable
 fun Header(onClick: () -> Unit) {
     Row(
-        modifier = Modifier.fillMaxWidth().padding(start = 24.dp,end = 20.dp),
+        modifier = Modifier.fillMaxWidth().padding(start = 24.dp, end = 20.dp),
         verticalAlignment = Alignment.Top
     ) {
         Text(
@@ -88,7 +116,7 @@ fun Header(onClick: () -> Unit) {
 
 @Composable
 private fun EmptyStateCard(onClick: () -> Unit) {
-    Box(modifier = Modifier.padding(start = 24.dp,end = 24.dp)) {
+    Box(modifier = Modifier.padding(start = 24.dp, end = 24.dp)) {
 
         Image(painter = painterResource(Res.drawable.createpageimage), contentDescription = null)
         Surface(
@@ -129,7 +157,7 @@ private fun EmptyStateCard(onClick: () -> Unit) {
 }
 
 @Composable
-private fun TrendingSection() {
+private fun TrendingSection(rooms: List<Room>, onRoomClick: (Room) -> Unit) {
     Column {
         Text(
             text = "Trending",
@@ -140,32 +168,40 @@ private fun TrendingSection() {
         )
 
         Spacer(modifier = Modifier.height(8.dp))
+        AnimatedContent(
+            targetState = rooms.isEmpty(),
+            transitionSpec = {
+                fadeIn() togetherWith fadeOut()
+            }
+        ) { state ->
+            if (state) {
+                TrendingGridShimmer()
+            } else {
+                TrendingGrid(
+                    rooms = rooms,
+                    onRoomClick = onRoomClick
+                )
+            }
+        }
 
-        TrendingGrid()
     }
 }
 
 @Composable
-private fun TrendingGrid() {
-    val rooms = listOf(
-        RoomCategory("Bedroom"),
-        RoomCategory("Guest Room"),
-        RoomCategory("Bathroom"),
-        RoomCategory("TV Console"),
-        RoomCategory("Dinning Room"),
-        RoomCategory("Terrace"),
-        RoomCategory("Walk-in Closet"),
-        RoomCategory("Living Room"),
-        RoomCategory("Stair Wall"),
-        RoomCategory("Kitchen Cabinet"),
-        RoomCategory("Master Bathroom"),
-        RoomCategory("Dinning Room")
-    )
-
+private fun TrendingGrid(
+    rooms: List<Room>,
+    onRoomClick: (Room) -> Unit
+) {
     LazyRow(
         horizontalArrangement = Arrangement.spacedBy(8.dp),
-        contentPadding = PaddingValues(start = 24.dp, end = 10.dp),
-        modifier = Modifier.height(260.dp)
+        contentPadding = PaddingValues(start = 24.dp, end = 24.dp),
+        modifier = Modifier.then(
+            if (rooms.size > 1) {
+                Modifier.height(260.dp)
+            } else {
+                Modifier.wrapContentHeight()
+            }
+        )
     ) {
         items(rooms.chunked(2)) { columnItems ->
             val columnIndex = rooms.chunked(2).indexOf(columnItems)
@@ -183,26 +219,43 @@ private fun TrendingGrid() {
 
                     RoomCategoryCard(
                         room = room,
-                        modifier = Modifier.height(height)
+                        height = height,
+                        onClick = { onRoomClick(room) }
                     )
                 }
             }
-        }
-        item {
-            Spacer(modifier = Modifier.width(4.dp))
         }
     }
 }
 
 @Composable
-private fun RoomCategoryCard(room: RoomCategory, modifier: Modifier = Modifier) {
+private fun RoomCategoryCard(
+    room: Room,
+    height: androidx.compose.ui.unit.Dp,
+    onClick: () -> Unit
+) {
     Box(
-        modifier = modifier
+        modifier = Modifier
             .width(126.dp)
-            .height(room.height.dp)
+            .height(height)
             .clip(RoundedCornerShape(8.782.dp))
             .background(Color(0xFFE8E8E8))
+            .clickable { onClick() }
     ) {
+        Logger.i("CHECKIMAFE") {
+            room.image_url
+        }
+        AsyncImage(
+            model = ImageRequest.Builder(LocalPlatformContext.current)
+                .data(room.image_url)
+                .crossfade(true)
+                .build(),
+            placeholder = painterResource(Res.drawable.roomplaceholder),
+            error = painterResource(Res.drawable.roomplaceholder),
+            contentDescription = room.room_type,
+            modifier = Modifier.fillMaxSize(),
+            contentScale = ContentScale.Crop
+        )
         Box(
             modifier = Modifier
                 .fillMaxWidth()
@@ -218,7 +271,7 @@ private fun RoomCategoryCard(room: RoomCategory, modifier: Modifier = Modifier) 
                 )
         )
         Text(
-            text = room.name,
+            text = room.room_type,
             fontSize = 14.sp,
             fontWeight = FontWeight.Bold,
             color = Color.White,
@@ -278,5 +331,76 @@ private fun RecentFilesRow() {
         item {
             Spacer(modifier = Modifier.width(4.dp))
         }
+    }
+}
+
+@Composable
+private fun TrendingGridShimmer() {
+    val dummyItems = List(12) { it }
+
+    LazyRow(
+        horizontalArrangement = Arrangement.spacedBy(8.dp),
+        contentPadding = PaddingValues(start = 24.dp, end = 24.dp),
+        modifier = Modifier.height(260.dp)
+    ) {
+        items(dummyItems.chunked(2)) { columnItems ->
+            val columnIndex = dummyItems.chunked(2).indexOf(columnItems)
+            val isAlternate = columnIndex % 2 == 1
+
+            Column(
+                verticalArrangement = Arrangement.spacedBy(8.dp)
+            ) {
+                columnItems.forEachIndexed { index, _ ->
+                    val height = when {
+                        isAlternate && index == 1 -> 95.dp
+                        isAlternate && index == 0 -> 156.dp
+                        else -> 126.dp
+                    }
+
+                    Box(
+                        modifier = Modifier
+                            .width(126.dp)
+                            .height(height)
+                            .clip(RoundedCornerShape(8.782.dp))
+                            .background(Color(0xFFE8E8E8))
+                            .shimmerLoading()
+                    )
+                }
+            }
+        }
+    }
+}
+
+@Composable
+fun Modifier.shimmerLoading(
+    durationMillis: Int = 1000,
+): Modifier {
+    val transition = rememberInfiniteTransition(label = "")
+
+    val translateAnimation by transition.animateFloat(
+        initialValue = 0f,
+        targetValue = 500f,
+        animationSpec = infiniteRepeatable(
+            animation = tween(
+                durationMillis = durationMillis,
+                easing = LinearEasing,
+            ),
+            repeatMode = RepeatMode.Restart,
+        ),
+        label = "",
+    )
+
+    return drawBehind {
+        drawRect(
+            brush = Brush.linearGradient(
+                colors = listOf(
+                    Color.LightGray.copy(alpha = 0.2f),
+                    Color.LightGray.copy(alpha = 1.0f),
+                    Color.LightGray.copy(alpha = 0.2f),
+                ),
+                start = Offset(x = translateAnimation, y = translateAnimation),
+                end = Offset(x = translateAnimation + 100f, y = translateAnimation + 100f),
+            )
+        )
     }
 }

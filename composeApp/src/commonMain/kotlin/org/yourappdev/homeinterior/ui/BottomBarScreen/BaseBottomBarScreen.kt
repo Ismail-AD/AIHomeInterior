@@ -15,6 +15,7 @@ import androidx.compose.material3.FloatingActionButtonDefaults
 import androidx.compose.material3.Scaffold
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.getValue
+import androidx.compose.runtime.remember
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.innerShadow
@@ -23,21 +24,21 @@ import androidx.compose.ui.graphics.ColorFilter
 import androidx.compose.ui.graphics.shadow.Shadow
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
-import androidx.navigation.NavHostController
 import androidx.navigation.compose.NavHost
 import androidx.navigation.compose.composable
 import androidx.navigation.compose.currentBackStackEntryAsState
 import androidx.navigation.compose.rememberNavController
-import co.touchlab.kermit.Logger
 import homeinterior.composeapp.generated.resources.*
 import org.jetbrains.compose.resources.painterResource
 import org.jetbrains.compose.resources.stringResource
+import org.koin.compose.viewmodel.koinViewModel
 import org.yourappdev.homeinterior.navigation.Routes
 import org.yourappdev.homeinterior.ui.Account.AccountScreen
 import org.yourappdev.homeinterior.ui.Account.ProfileScreen
 import org.yourappdev.homeinterior.ui.Account.SubscriptionScreen
-import org.yourappdev.homeinterior.ui.Create.CreateScreen
-import org.yourappdev.homeinterior.ui.Explore.ExploreScreen
+import org.yourappdev.homeinterior.ui.CreateAndExplore.Create.CreateScreen
+import org.yourappdev.homeinterior.ui.CreateAndExplore.Explore.ExploreScreen
+import org.yourappdev.homeinterior.ui.CreateAndExplore.RoomsViewModel
 import org.yourappdev.homeinterior.ui.Files.CreateEditScreen
 import org.yourappdev.homeinterior.ui.Files.FilesScreen
 import org.yourappdev.homeinterior.ui.Generate.AboutToGenerateScreen
@@ -54,7 +55,8 @@ fun BaseBottomBarScreen() {
     val navController = rememberNavController()
     val navBackStackEntry by navController.currentBackStackEntryAsState()
     val currentDestination = navBackStackEntry?.destination
-
+    val roomViewModel: RoomsViewModel =
+        koinViewModel()
 
 
     val shouldShowBottomBar = currentDestination?.route?.let { route ->
@@ -199,7 +201,8 @@ fun BaseBottomBarScreen() {
             // Bottom bar destinations
             composable<Routes.Create> {
                 CreateScreen(
-                    onClick = {
+                    viewModel = roomViewModel,
+                    onPremiumClick = {
                         navController.navigate(Routes.Subscription)
                     }
                 )
@@ -207,9 +210,7 @@ fun BaseBottomBarScreen() {
 
             composable<Routes.Explore> {
                 ExploreScreen(
-                    onFilterClick = {
-
-                    }
+                    viewModel = roomViewModel
                 )
             }
 

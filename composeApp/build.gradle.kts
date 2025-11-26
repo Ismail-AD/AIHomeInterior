@@ -65,6 +65,7 @@ kotlin {
             implementation(libs.androidx.lifecycle.runtimeCompose)
             implementation(libs.kotlinx.datetime)
             implementation(libs.coil.compose)
+            implementation(libs.coil.network.okhttp)
             implementation(libs.coil.svg)
             implementation(compose.components.resources)
             implementation(libs.compottie)
@@ -121,6 +122,9 @@ android {
     buildTypes {
         getByName("release") {
             isMinifyEnabled = false
+        }
+        debug {
+            isDebuggable = true
         }
     }
     compileOptions {

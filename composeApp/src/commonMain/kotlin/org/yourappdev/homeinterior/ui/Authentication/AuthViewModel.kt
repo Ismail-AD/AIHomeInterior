@@ -20,6 +20,8 @@ import org.yourappdev.homeinterior.ui.Authentication.Register.RegisterEvent
 import org.yourappdev.homeinterior.ui.Authentication.Register.RegisterState
 import org.yourappdev.homeinterior.ui.common.base.CommonUiEvent
 import org.yourappdev.homeinterior.ui.common.base.CommonUiEvent.*
+import org.yourappdev.homeinterior.utils.Constants
+import org.yourappdev.homeinterior.utils.Constants.BT
 import org.yourappdev.homeinterior.utils.Constants.LOGIN
 import org.yourappdev.homeinterior.utils.executeApiCall
 
@@ -100,6 +102,10 @@ class AuthViewModel(val repository: AuthRepository, val settings: Settings) : Vi
 
             RegisterEvent.ForgetPasswordReset -> {
                 if (_state.value.newPassword.isBlank()) {
+                    viewModelScope.launch {
+                        _uiEvent.emit(ShowError("Password is required"))
+                    }
+                } else {
                     performForgetPasswordReset()
                 }
             }
@@ -108,10 +114,36 @@ class AuthViewModel(val repository: AuthRepository, val settings: Settings) : Vi
                 _state.value = _state.value.copy(newPassword = event.password)
             }
 
-
+            RegisterEvent.ResendForget -> {
+                if (state.value.canResend) {
+                    performResendForgetPassword()
+                    startResendTimer()
+                }
+            }
         }
     }
 
+
+    private fun performResendForgetPassword() {
+        viewModelScope.launch {
+            executeApiCall(
+                updateState = { result ->
+                    _state.value = _state.value.copy(forgetPasswordResendResponse = result)
+                },
+                apiCall = { repository.forgetPasswordRequest(_state.value.email) },
+                onSuccess = { response ->
+                    if (response.success) {
+                        _uiEvent.emit(ShowSuccess("OTP resent successfully"))
+                    } else {
+                        _uiEvent.emit(ShowError(response.message))
+                    }
+                },
+                onError = { errorMessage ->
+                    viewModelScope.launch { _uiEvent.emit(ShowError(errorMessage)) }
+                }
+            )
+        }
+    }
 
     private fun performForgetPasswordRequest() {
         viewModelScope.launch {
@@ -125,7 +157,7 @@ class AuthViewModel(val repository: AuthRepository, val settings: Settings) : Vi
                         _uiEvent.emit(ShowSuccess("OTP sent to your email"))
                         _uiEvent.emit(NavigateToSuccess)
                     } else {
-                        response.error?.let { _uiEvent.emit(ShowError(it)) }
+                        _uiEvent.emit(ShowError(response.message))
                     }
                 },
                 onError = { errorMessage ->
@@ -149,7 +181,7 @@ class AuthViewModel(val repository: AuthRepository, val settings: Settings) : Vi
                         _uiEvent.emit(ShowSuccess("OTP verified successfully"))
                         _uiEvent.emit(NavigateToSuccess)
                     } else {
-                        response.error?.let { _uiEvent.emit(ShowError(it)) }
+                        _uiEvent.emit(ShowError(response.message))
                     }
                 },
                 onError = { errorMessage ->
@@ -177,7 +209,7 @@ class AuthViewModel(val repository: AuthRepository, val settings: Settings) : Vi
                         _uiEvent.emit(ShowSuccess("Password reset successfully"))
                         _uiEvent.emit(NavigateToSuccess)
                     } else {
-                        response.error?.let { _uiEvent.emit(ShowError(it)) }
+                        _uiEvent.emit(ShowError(response.message))
                     }
                 },
                 onError = { errorMessage ->
@@ -200,10 +232,11 @@ class AuthViewModel(val repository: AuthRepository, val settings: Settings) : Vi
                 onSuccess = { response ->
                     if (response.success) {
                         settings.putBoolean(LOGIN, true)
+                        settings.putString(BT, response.token ?: "")
                         _uiEvent.emit(ShowSuccess("Login successful!"))
                         _uiEvent.emit(NavigateToSuccess)
                     } else {
-                        response.error?.let { _uiEvent.emit(ShowError(it)) }
+                        _uiEvent.emit(ShowError(response.message))
                     }
                 },
                 onError = { errorMessage ->
@@ -245,6 +278,8 @@ class AuthViewModel(val repository: AuthRepository, val settings: Settings) : Vi
                 onSuccess = { response ->
                     if (response.success) {
                         settings.putBoolean(LOGIN, true)
+                        settings.putBoolean(Constants.ONBOARDING, true)
+                        settings.putString(BT, response.token ?: "")
                         _uiEvent.emit(ShowSuccess(response.message))
                         _uiEvent.emit(NavigateToSuccess)
                     } else {
@@ -257,6 +292,7 @@ class AuthViewModel(val repository: AuthRepository, val settings: Settings) : Vi
             )
         }
     }
+
 
     private fun resendOtp() {
         viewModelScope.launch {
@@ -294,7 +330,7 @@ class AuthViewModel(val repository: AuthRepository, val settings: Settings) : Vi
                     if (response.success) {
                         _uiEvent.emit(NavigateToSuccess)
                     } else {
-                        response.error?.let { _uiEvent.emit(ShowError(it)) }
+                        _uiEvent.emit(ShowError(response.message))
                     }
                 },
                 onError = { errorMessage ->

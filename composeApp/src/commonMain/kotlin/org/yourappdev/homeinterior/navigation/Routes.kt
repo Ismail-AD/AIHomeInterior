@@ -28,7 +28,7 @@ sealed class Routes {
     data object Login : Routes()
 
     @Serializable
-    @SerialName("home")
+    @SerialName("baseappscreen")
     data object BaseAppScreen : Routes()
 
     @Serializable

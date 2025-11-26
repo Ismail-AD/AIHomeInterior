@@ -1,35 +1,28 @@
-package org.yourappdev.homeinterior.ui.Explore
+package org.yourappdev.homeinterior.ui.CreateAndExplore.Explore
 
 
-import androidx.compose.animation.core.animateFloatAsState
-import androidx.compose.foundation.Canvas
+import androidx.compose.animation.AnimatedVisibility
+import androidx.compose.animation.core.FastOutSlowInEasing
+import androidx.compose.animation.core.tween
+import androidx.compose.animation.expandVertically
+import androidx.compose.animation.fadeIn
+import androidx.compose.animation.fadeOut
+import androidx.compose.animation.shrinkVertically
+import androidx.compose.foundation.BorderStroke
 import androidx.compose.foundation.Image
 import androidx.compose.foundation.background
 import androidx.compose.foundation.border
 import androidx.compose.foundation.clickable
-import androidx.compose.foundation.horizontalScroll
 import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.lazy.LazyColumn
-import androidx.compose.foundation.lazy.items
-import androidx.compose.foundation.lazy.staggeredgrid.LazyHorizontalStaggeredGrid
-import androidx.compose.foundation.lazy.staggeredgrid.StaggeredGridCells
-import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.shape.RoundedCornerShape
-import androidx.compose.foundation.verticalScroll
 import androidx.compose.material3.*
 import androidx.compose.runtime.*
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
-import androidx.compose.ui.draw.rotate
-import androidx.compose.ui.geometry.Offset
 import androidx.compose.ui.graphics.Color
-import androidx.compose.ui.graphics.Path
-import androidx.compose.ui.graphics.StrokeCap
-import androidx.compose.ui.graphics.StrokeJoin
-import androidx.compose.ui.graphics.drawscope.Stroke
-import androidx.compose.ui.layout.ContentScale
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
@@ -37,17 +30,12 @@ import homeinterior.composeapp.generated.resources.Res
 import homeinterior.composeapp.generated.resources.keyboard_arrow_down_24px
 import homeinterior.composeapp.generated.resources.keyboard_arrow_up_24px
 import org.jetbrains.compose.resources.painterResource
+import org.yourappdev.homeinterior.ui.CreateAndExplore.FilterState
 
-data class FilterState(
-    var selectedRoomTypes: Set<String> = setOf("Bedroom"),
-    var selectedStyles: Set<String> = setOf("Modern"),
-    var selectedColors: Set<Int> = setOf(3),
-    var selectedFormats: Set<String> = setOf("JPEG"),
-    var selectedPrices: Set<String> = setOf("Free")
-)
 
 @Composable
 fun FilterBottomSheetContent(
+    initialFilterState: FilterState = FilterState(),
     onApplyFilters: (FilterState) -> Unit,
     onCancel: () -> Unit
 ) {
@@ -226,7 +214,7 @@ fun FilterBottomSheetContent(
                     colors = ButtonDefaults.outlinedButtonColors(
                         containerColor = Color.White
                     ),
-                    border = androidx.compose.foundation.BorderStroke(1.dp, cancelBorderColor),
+                    border = BorderStroke(1.dp, cancelBorderColor),
                 ) {
                     Text(
                         text = "Cancel",
@@ -279,25 +267,25 @@ fun ExpandableFilterSection(
             )
         }
 
-        androidx.compose.animation.AnimatedVisibility(
+        AnimatedVisibility(
             visible = expanded,
-            enter = androidx.compose.animation.expandVertically(
-                animationSpec = androidx.compose.animation.core.tween(
+            enter = expandVertically(
+                animationSpec = tween(
                     durationMillis = 300,
-                    easing = androidx.compose.animation.core.FastOutSlowInEasing
+                    easing = FastOutSlowInEasing
                 )
-            ) + androidx.compose.animation.fadeIn(
-                animationSpec = androidx.compose.animation.core.tween(
+            ) + fadeIn(
+                animationSpec = tween(
                     durationMillis = 300
                 )
             ),
-            exit = androidx.compose.animation.shrinkVertically(
-                animationSpec = androidx.compose.animation.core.tween(
+            exit = shrinkVertically(
+                animationSpec = tween(
                     durationMillis = 300,
-                    easing = androidx.compose.animation.core.FastOutSlowInEasing
+                    easing = FastOutSlowInEasing
                 )
-            ) + androidx.compose.animation.fadeOut(
-                animationSpec = androidx.compose.animation.core.tween(
+            ) + fadeOut(
+                animationSpec = tween(
                     durationMillis = 300
                 )
             )

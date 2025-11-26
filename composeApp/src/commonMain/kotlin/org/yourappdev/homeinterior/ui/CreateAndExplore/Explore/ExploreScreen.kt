@@ -1,5 +1,9 @@
-package org.yourappdev.homeinterior.ui.Explore
+package org.yourappdev.homeinterior.ui.CreateAndExplore.Explore
 
+import androidx.compose.animation.AnimatedContent
+import androidx.compose.animation.fadeIn
+import androidx.compose.animation.fadeOut
+import androidx.compose.animation.togetherWith
 import androidx.compose.foundation.Image
 import androidx.compose.foundation.background
 import androidx.compose.foundation.border
@@ -14,6 +18,7 @@ import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.foundation.text.BasicTextField
 import androidx.compose.material3.*
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
@@ -33,7 +38,19 @@ import homeinterior.composeapp.generated.resources.sofa_3
 import org.jetbrains.compose.resources.painterResource
 import org.jetbrains.compose.resources.DrawableResource
 import androidx.compose.ui.layout.ContentScale
+import androidx.compose.ui.text.TextStyle
 import androidx.compose.ui.text.input.VisualTransformation
+import androidx.compose.ui.unit.Dp
+import coil3.compose.AsyncImage
+import coil3.compose.LocalPlatformContext
+import coil3.request.ImageRequest
+import coil3.request.crossfade
+import homeinterior.composeapp.generated.resources.roomplaceholder
+import org.koin.compose.viewmodel.koinViewModel
+import org.yourappdev.homeinterior.domain.model.Room
+import org.yourappdev.homeinterior.ui.CreateAndExplore.Create.shimmerLoading
+import org.yourappdev.homeinterior.ui.CreateAndExplore.RoomEvent
+import org.yourappdev.homeinterior.ui.CreateAndExplore.RoomsViewModel
 import org.yourappdev.homeinterior.ui.theme.fieldBack
 import kotlin.random.Random
 
@@ -45,37 +62,9 @@ data class ImageItem(
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
-fun ExploreScreen(onFilterClick: () -> Unit) {
-    var filterCount by remember { mutableStateOf(0) }
-    val text = remember { mutableStateOf("") }
-    var showSheet by remember { mutableStateOf(false) }
+fun ExploreScreen(viewModel: RoomsViewModel = koinViewModel(),onRoomClick: (Room) -> Unit={}) {
+    val state by viewModel.state.collectAsState()
     val sheetState = rememberModalBottomSheetState(skipPartiallyExpanded = true)
-
-    // Generate dynamic image items with random heights and colors
-    val imageItems = remember {
-        val baseImages = listOf(
-            Res.drawable.sofa,
-            Res.drawable.sofa_2,
-            Res.drawable.sofa_3
-        )
-
-        val colorPalettes = listOf(
-            listOf(Color(0xFFD2B48C), Color.Black, Color(0xFF8B4513)),
-            listOf(Color(0xFF8B6914), Color(0xFFC4A747), Color(0xFFD4B95A)),
-            listOf(Color(0xFF2C5F2D), Color(0xFF4A7C59), Color(0xFF6B9B6E)),
-            listOf(Color(0xFF4A5568), Color(0xFF718096), Color(0xFF8B95A5)),
-            listOf(Color(0xFF6B46C1), Color(0xFF9F7AEA), Color(0xFFB794F6)),
-            listOf(Color(0xFFE91E63), Color(0xFFF48FB1), Color(0xFFF8BBD0))
-        )
-
-        List(30) { index ->
-            ImageItem(
-                imageRes = baseImages[index % baseImages.size],
-                height = Random.nextInt(150, 280),
-                colors = colorPalettes[index % colorPalettes.size]
-            )
-        }
-    }
 
     Box(modifier = Modifier.fillMaxSize()) {
         Column(modifier = Modifier.fillMaxSize()) {
@@ -98,9 +87,11 @@ fun ExploreScreen(onFilterClick: () -> Unit) {
                     modifier = Modifier.padding(start = 24.dp, end = 24.dp, bottom = 16.dp)
                 ) {
                     BasicTextField(
-                        value = text.value,
-                        onValueChange = { text.value = it },
-                        textStyle = androidx.compose.ui.text.TextStyle(
+                        value = state.searchQuery,
+                        onValueChange = {
+                            viewModel.onRoomEvent(RoomEvent.OnSearchQueryChange(it))
+                        },
+                        textStyle = TextStyle(
                             fontSize = 16.sp,
                             fontWeight = FontWeight.Normal,
                             letterSpacing = 0.16.sp,
@@ -113,7 +104,7 @@ fun ExploreScreen(onFilterClick: () -> Unit) {
                             .background(fieldBack, RoundedCornerShape(10.dp))
                     ) { innerTextField ->
                         TextFieldDefaults.DecorationBox(
-                            value = text.value,
+                            value = state.searchQuery,
                             innerTextField = innerTextField,
                             placeholder = { Text("Search here...") },
                             singleLine = true,
@@ -136,7 +127,9 @@ fun ExploreScreen(onFilterClick: () -> Unit) {
                                 .fillMaxSize()
                                 .background(fieldBack, RoundedCornerShape(10.dp))
                                 .clip(RoundedCornerShape(10.dp))
-                                .clickable(enabled = true, onClick = { showSheet = true }),
+                                .clickable(enabled = true, onClick = {
+                                    viewModel.onRoomEvent(RoomEvent.OnFilterClick)
+                                }),
                             contentAlignment = Alignment.Center
                         ) {
                             Image(
@@ -145,7 +138,7 @@ fun ExploreScreen(onFilterClick: () -> Unit) {
                             )
                         }
 
-                        if (filterCount > 0) {
+                        if (state.filterCount > 0) {
                             Box(
                                 modifier = Modifier
                                     .size(18.dp)
@@ -155,7 +148,7 @@ fun ExploreScreen(onFilterClick: () -> Unit) {
                                 contentAlignment = Alignment.Center
                             ) {
                                 Text(
-                                    text = filterCount.toString(),
+                                    text = state.filterCount.toString(),
                                     fontSize = 10.sp,
                                     fontWeight = FontWeight.Bold,
                                     color = Color.White,
@@ -168,60 +161,140 @@ fun ExploreScreen(onFilterClick: () -> Unit) {
             }
 
             // Vertical Staggered Grid
-            LazyVerticalStaggeredGrid(
-                columns = StaggeredGridCells.Fixed(2),
-                modifier = Modifier.fillMaxSize(),
-                contentPadding = PaddingValues(horizontal = 16.dp, vertical = 8.dp),
-                horizontalArrangement = Arrangement.spacedBy(12.dp),
-                verticalItemSpacing = 12.dp
-            ) {
-                items(imageItems) { item ->
-                    ImageCard(
-                        imageRes = item.imageRes,
-                        height = item.height.dp,
-                        colors = item.colors
+            AnimatedContent(
+                targetState = state.isLoading to state.filteredRooms.isEmpty(),
+                transitionSpec = {
+                    fadeIn() togetherWith fadeOut()
+                }
+            ) { (loading, isEmpty) ->
+                when {
+                    loading -> ExploreGridShimmer()
+                    isEmpty -> EmptyRoomsMessage()
+                    else -> ExploreGrid(
+                        rooms = state.filteredRooms,
+                        onRoomClick = onRoomClick
                     )
                 }
             }
         }
 
-        if (showSheet) {
+        if (state.showFilterSheet) {
             ModalBottomSheet(
-                onDismissRequest = { showSheet = false },
+                onDismissRequest = {
+                    viewModel.onRoomEvent(RoomEvent.OnDismissFilterSheet)
+                },
                 sheetState = sheetState,
                 containerColor = Color.Transparent,
                 dragHandle = null,
                 modifier = Modifier.statusBarsPadding()
             ) {
                 FilterBottomSheetContent(
+                    initialFilterState = state.filterState,
                     onApplyFilters = { filters ->
-                        filterCount = 0
-                        if (filters.selectedRoomTypes.isNotEmpty() && !filters.selectedRoomTypes.contains("All")) {
-                            filterCount++
-                        }
-                        if (filters.selectedStyles.isNotEmpty() && !filters.selectedStyles.contains("All")) {
-                            filterCount++
-                        }
-                        if (filters.selectedColors.isNotEmpty() && !filters.selectedStyles.contains("All")) {
-                            filterCount++
-                        }
-                        if (filters.selectedFormats.isNotEmpty() && !filters.selectedFormats.contains("All")) {
-                            filterCount++
-                        }
-                        if (filters.selectedPrices.isNotEmpty()) {
-                            filterCount++
-                        }
-                        showSheet = false
+                        viewModel.onRoomEvent(RoomEvent.OnApplyFilters(filters))
                     },
-                    onCancel = { showSheet = false }
+                    onCancel = {
+                        viewModel.onRoomEvent(RoomEvent.OnDismissFilterSheet)
+                    }
                 )
             }
         }
     }
 }
+@Composable
+private fun EmptyRoomsMessage() {
+    Box(
+        modifier = Modifier.fillMaxSize(),
+        contentAlignment = Alignment.Center
+    ) {
+        Text(
+            text = "No rooms found",
+            fontSize = 16.sp,
+            fontWeight = FontWeight.Medium,
+            color = Color.Gray
+        )
+    }
+}
+
 
 @Composable
-fun ImageCard(imageRes: DrawableResource, height: androidx.compose.ui.unit.Dp, colors: List<Color>) {
+private fun ExploreGrid(
+    rooms: List<Room>,
+    onRoomClick: (Room) -> Unit
+) {
+    LazyVerticalStaggeredGrid(
+        columns = StaggeredGridCells.Fixed(2),
+        modifier = Modifier.fillMaxSize(),
+        contentPadding = PaddingValues(horizontal = 16.dp, vertical = 8.dp),
+        horizontalArrangement = Arrangement.spacedBy(12.dp),
+        verticalItemSpacing = 12.dp
+    ) {
+        items(rooms) { room ->
+            RoomImageCard(
+                room = room,
+                onClick = { onRoomClick(room) }
+            )
+        }
+    }
+}
+
+@Composable
+private fun RoomImageCard(
+    room: Room,
+    onClick: () -> Unit
+) {
+    // Vary heights for staggered effect (150-280dp range)
+    val height = remember(room.id) {
+        listOf(150, 180, 210, 240, 280).random().dp
+    }
+
+    Box(
+        modifier = Modifier
+            .fillMaxWidth()
+            .height(height)
+            .clip(RoundedCornerShape(12.dp))
+            .clickable { onClick() }
+    ) {
+        AsyncImage(
+            model = ImageRequest.Builder(LocalPlatformContext.current)
+                .data(room.image_url)
+                .crossfade(true)
+                .build(),
+            placeholder = painterResource(Res.drawable.roomplaceholder),
+            error = painterResource(Res.drawable.roomplaceholder),
+            contentDescription = room.room_type,
+            modifier = Modifier.fillMaxSize(),
+            contentScale = ContentScale.Crop
+        )
+
+        // Gradient overlay at bottom
+        Box(
+            modifier = Modifier
+                .fillMaxWidth()
+                .height(60.dp)
+                .align(Alignment.BottomCenter)
+                .background(
+                    androidx.compose.ui.graphics.Brush.verticalGradient(
+                        0.0f to Color.Transparent,
+                        1.0f to Color.Black.copy(alpha = 0.6f)
+                    )
+                )
+        )
+
+        // Room type text
+        Text(
+            text = room.room_type,
+            fontSize = 14.sp,
+            fontWeight = FontWeight.SemiBold,
+            color = Color.White,
+            modifier = Modifier
+                .align(Alignment.BottomStart)
+                .padding(12.dp)
+        )
+    }
+}
+@Composable
+fun ImageCard(imageRes: DrawableResource, height: Dp, colors: List<Color>) {
     Box(
         modifier = Modifier
             .fillMaxWidth()
@@ -241,6 +314,34 @@ fun ImageCard(imageRes: DrawableResource, height: androidx.compose.ui.unit.Dp, c
                 .padding(bottom = 8.dp, start = 8.dp),
             colors = colors
         )
+    }
+}
+
+@Composable
+private fun ExploreGridShimmer() {
+    val dummyItems = List(12) { it }
+
+    LazyVerticalStaggeredGrid(
+        columns = StaggeredGridCells.Fixed(2),
+        modifier = Modifier.fillMaxSize(),
+        contentPadding = PaddingValues(horizontal = 16.dp, vertical = 8.dp),
+        horizontalArrangement = Arrangement.spacedBy(12.dp),
+        verticalItemSpacing = 12.dp
+    ) {
+        items(dummyItems) { index ->
+            val height = remember(index) {
+                listOf(150, 180, 210, 240, 280).random().dp
+            }
+
+            Box(
+                modifier = Modifier
+                    .fillMaxWidth()
+                    .height(height)
+                    .clip(RoundedCornerShape(12.dp))
+                    .background(Color(0xFFE8E8E8))
+                    .shimmerLoading()
+            )
+        }
     }
 }
 

@@ -275,7 +275,7 @@ fun RegisterScreen(
                     color = Color(0xFF666666)
                 )
                 ClickableText(title = "Login", textSize = 14.sp, fontWeight = FontWeight.Bold) {
-
+                    onBackClick()
                 }
             }
         }

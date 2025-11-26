@@ -47,7 +47,7 @@ class AuthService(val client: HttpClient) {
         )
     }
 
-    suspend fun forgetPasswordRequest(email: String) = client.post("auth/forgot-password/send") {
+    suspend fun forgetPasswordRequest(email: String) = client.post("forgot-password/send") {
         setBody(
             FormDataContent(
                 Parameters.build {
@@ -57,7 +57,7 @@ class AuthService(val client: HttpClient) {
         )
     }
 
-    suspend fun forgetPasswordVerify(email: String, otp: String) = client.post("auth/forgot-password/verify") {
+    suspend fun forgetPasswordVerify(email: String, otp: String) = client.post("forgot-password/verify") {
         setBody(
             FormDataContent(
                 Parameters.build {
@@ -69,7 +69,7 @@ class AuthService(val client: HttpClient) {
     }
 
     suspend fun forgetPasswordReset(email: String, password: String, confirm_password: String) =
-        client.post("auth/forgot-password/verify") {
+        client.post("forgot-password/reset") {
             setBody(
                 FormDataContent(
                     Parameters.build {

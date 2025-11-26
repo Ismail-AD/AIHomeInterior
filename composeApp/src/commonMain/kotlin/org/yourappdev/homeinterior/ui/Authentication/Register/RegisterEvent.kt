@@ -10,6 +10,7 @@ sealed interface RegisterEvent {
 
     data object Verify : RegisterEvent
     data object Resend : RegisterEvent
+    data object ResendForget : RegisterEvent
     data class TogglePassword(val newState: Boolean) : RegisterEvent
     object ForgetPasswordRequest : RegisterEvent
     object ForgetPasswordVerify : RegisterEvent

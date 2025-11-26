@@ -129,7 +129,7 @@ fun BaseScreen(onEndReached: () -> Unit) {
                             text = myList[page].subTitle,
                             fontSize = 14.5.sp,
                             textAlign = TextAlign.Center,
-                            modifier = Modifier.fillMaxWidth().fillMaxHeight(0.1f),
+                            modifier = Modifier.fillMaxWidth(),
                             lineHeight = 21.sp,
                             color = Color(0xff979797)
                         )

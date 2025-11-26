@@ -38,6 +38,7 @@ import org.yourappdev.homeinterior.ui.Authentication.Register.RegisterState
 import org.yourappdev.homeinterior.ui.UiUtils.BackIconButton
 import org.yourappdev.homeinterior.ui.UiUtils.ButtonWithIcon
 import org.yourappdev.homeinterior.ui.UiUtils.ClickableText
+import org.yourappdev.homeinterior.ui.UiUtils.CustomSnackbar
 import org.yourappdev.homeinterior.ui.UiUtils.ProgressLoading
 import org.yourappdev.homeinterior.ui.UiUtils.rememberCustomSnackbarState
 import org.yourappdev.homeinterior.ui.common.base.CommonUiEvent
@@ -84,7 +85,7 @@ fun LoginScreen(
             .background(Color.White)
             .statusBarsPadding()
     ) {
-        if (state.registerResponse is ResultState.Loading) {
+        if (state.loginResponse is ResultState.Loading) {
             ProgressLoading()
         }
         Column(
@@ -287,5 +288,9 @@ fun LoginScreen(
                 }
             }
         }
+        CustomSnackbar(
+            state = snackBarState,
+            duration = 3000L
+        )
     }
 }
