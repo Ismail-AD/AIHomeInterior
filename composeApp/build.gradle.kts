@@ -92,6 +92,8 @@ kotlin {
             implementation(libs.multiplatform.settings.no.arg)
             implementation(libs.multiplatform.settings)
 
+            implementation(libs.imagepickerkmp)
+
         }
         commonTest.dependencies {
             implementation(libs.kotlin.test)

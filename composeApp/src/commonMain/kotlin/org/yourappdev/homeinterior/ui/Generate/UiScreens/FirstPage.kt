@@ -1,7 +1,6 @@
-package org.yourappdev.homeinterior.ui.Generate
+package org.yourappdev.homeinterior.ui.Generate.UiScreens
 
 import androidx.compose.foundation.Image
-import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.fillMaxHeight
 import androidx.compose.foundation.layout.fillMaxSize
@@ -12,17 +11,19 @@ import androidx.compose.runtime.Composable
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
-import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.layout.ContentScale
 import androidx.compose.ui.unit.dp
+import coil3.compose.AsyncImage
+import coil3.compose.LocalPlatformContext
+import coil3.request.ImageRequest
+import coil3.request.crossfade
 import homeinterior.composeapp.generated.resources.Res
-import homeinterior.composeapp.generated.resources.page_
-import homeinterior.composeapp.generated.resources.sofa
+import homeinterior.composeapp.generated.resources.roomplaceholder
 import homeinterior.composeapp.generated.resources.sofa_2
 import org.jetbrains.compose.resources.painterResource
 
 @Composable
-fun FirstPage() {
+fun FirstPage(imageUri: String?) {
     Box(
         modifier = Modifier.fillMaxSize().padding(horizontal = 24.dp),
         contentAlignment = Alignment.TopCenter
@@ -32,11 +33,16 @@ fun FirstPage() {
                 .clip(RoundedCornerShape(9.dp)),
             contentAlignment = Alignment.TopCenter
         ) {
-            Image(
-                painter = painterResource(Res.drawable.sofa_2),
-                contentDescription = "Editing Image",
-                contentScale = ContentScale.Crop,
-                modifier = Modifier.fillMaxSize()
+            AsyncImage(
+                model = ImageRequest.Builder(LocalPlatformContext.current)
+                    .data(imageUri)
+                    .crossfade(true)
+                    .build(),
+                placeholder = painterResource(Res.drawable.roomplaceholder),
+                error = painterResource(Res.drawable.roomplaceholder),
+                contentDescription = imageUri.toString(),
+                modifier = Modifier.fillMaxSize(),
+                contentScale = ContentScale.Crop
             )
         }
     }

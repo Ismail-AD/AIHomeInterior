@@ -1,6 +1,7 @@
-package org.yourappdev.homeinterior.ui.Generate
+package org.yourappdev.homeinterior.ui.Generate.UiScreens
 
 
+import androidx.compose.animation.AnimatedVisibility
 import androidx.compose.animation.fadeIn
 import androidx.compose.animation.fadeOut
 import androidx.compose.foundation.Image
@@ -12,7 +13,6 @@ import androidx.compose.foundation.lazy.grid.GridCells
 import androidx.compose.foundation.lazy.grid.LazyVerticalGrid
 import androidx.compose.foundation.lazy.grid.items
 import androidx.compose.foundation.lazy.grid.rememberLazyGridState
-import androidx.compose.foundation.lazy.rememberLazyListState
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material3.*
 import androidx.compose.runtime.*
@@ -27,9 +27,13 @@ import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
+import coil3.compose.AsyncImage
+import coil3.compose.LocalPlatformContext
+import coil3.request.ImageRequest
+import coil3.request.crossfade
 import homeinterior.composeapp.generated.resources.Res
-import homeinterior.composeapp.generated.resources.arrow_back_
 import homeinterior.composeapp.generated.resources.close
+import homeinterior.composeapp.generated.resources.roomplaceholder
 import homeinterior.composeapp.generated.resources.sofa
 import homeinterior.composeapp.generated.resources.sofa_2
 import homeinterior.composeapp.generated.resources.sofa_3
@@ -38,34 +42,33 @@ import org.jetbrains.compose.resources.painterResource
 
 data class InteriorStyle(
     val name: String,
-    val imageRes: DrawableResource,
+    val imageUrl: String,
     val id: Int
 )
 
 @Composable
-fun StyleSelectionScreen() {
-    var selectedStyleId by remember { mutableStateOf(0) }
-    var searchText by remember { mutableStateOf("") }
-
-    val interiorStyles = listOf(
-        InteriorStyle("Modern", Res.drawable.sofa, 0),
-        InteriorStyle("Contemporary", Res.drawable.sofa_2, 1),
-        InteriorStyle("Minimalist", Res.drawable.sofa_3, 2),
-        InteriorStyle("Scandinavian", Res.drawable.sofa, 3),
-        InteriorStyle("Japanese", Res.drawable.sofa_2, 4),
-        InteriorStyle("Boho Chic", Res.drawable.sofa_3, 5),
-        InteriorStyle("Industrial", Res.drawable.sofa, 6),
-        InteriorStyle("Luxury", Res.drawable.sofa_2, 7),
-        InteriorStyle("Classic", Res.drawable.sofa_3, 8),
-        InteriorStyle("Mid-Century", Res.drawable.sofa, 9),
-        InteriorStyle("Urban Modern", Res.drawable.sofa_2, 10),
-        InteriorStyle("Rustic Modern", Res.drawable.sofa_3, 11),
-    )
+fun StyleSelectionScreen(
+    styles: List<InteriorStyle>,
+    selectedStyleId: Int?,
+    searchQuery: String,
+    isSearchExpanded: Boolean,
+    onStyleSelected: (Int) -> Unit,
+    onSearchQueryChange: (String) -> Unit,
+    onSearchExpandedChange: (Boolean) -> Unit
+) {
     val listState = rememberLazyGridState()
     val isLastItemVisible by remember {
         derivedStateOf {
             val lastVisibleItem = listState.layoutInfo.visibleItemsInfo.lastOrNull()
-            lastVisibleItem?.index == interiorStyles.size - 1
+            lastVisibleItem?.index == styles.size - 1
+        }
+    }
+
+    val filteredStyles = remember(styles, searchQuery) {
+        if (searchQuery.isBlank()) {
+            styles
+        } else {
+            styles.filter { it.name.contains(searchQuery, ignoreCase = true) }
         }
     }
 
@@ -78,8 +81,13 @@ fun StyleSelectionScreen() {
             modifier = Modifier.fillMaxSize()
         ) {
 
-
-            HeaderWithSearch("Style")
+            HeaderWithSearch(
+                title = "Style",
+                searchText = searchQuery,
+                isSearchExpanded = isSearchExpanded,
+                onSearchTextChange = onSearchQueryChange,
+                onSearchExpandedChange = onSearchExpandedChange
+            )
 
             Spacer(modifier = Modifier.height(16.dp))
 
@@ -94,16 +102,16 @@ fun StyleSelectionScreen() {
                 verticalArrangement = Arrangement.spacedBy(10.dp),
                 contentPadding = PaddingValues(bottom = 100.dp)
             ) {
-                items(interiorStyles) { style ->
+                items(filteredStyles) { style ->
                     StyleCard(
                         style = style,
                         isSelected = style.id == selectedStyleId,
-                        onClick = { selectedStyleId = style.id },
+                        onClick = { onStyleSelected(style.id) },
                     )
                 }
             }
         }
-        androidx.compose.animation.AnimatedVisibility(
+        AnimatedVisibility(
             visible = !isLastItemVisible,
             enter = fadeIn(),
             exit = fadeOut(),
@@ -201,13 +209,17 @@ private fun StyleCard(
             )
             .clickable(onClick = onClick)
     ) {
-        Image(
-            painter = painterResource(style.imageRes),
+        AsyncImage(
+            model = ImageRequest.Builder(LocalPlatformContext.current)
+                .data(style.imageUrl)
+                .crossfade(true)
+                .build(),
+            placeholder = painterResource(Res.drawable.roomplaceholder),
+            error = painterResource(Res.drawable.roomplaceholder),
             contentDescription = style.name,
             modifier = Modifier.fillMaxSize(),
             contentScale = ContentScale.Crop
         )
-
 
         Box(
             modifier = Modifier

@@ -1,9 +1,29 @@
 package org.yourappdev.homeinterior.ui.CreateAndExplore
 
+import io.github.ismoy.imagepickerkmp.domain.models.GalleryPhotoResult
+
 sealed class RoomEvent {
+    // Filter & Search Events
     data class OnSearchQueryChange(val query: String) : RoomEvent()
-    data class OnApplyFilters(val filterState: FilterState) : RoomEvent()
+    data object OnApplyFilters : RoomEvent()
     object OnFilterClick : RoomEvent()
     object OnDismissFilterSheet : RoomEvent()
     object OnClearFilters : RoomEvent()
+    data class OnTempFilterChange(val filterState: FilterState) : RoomEvent()
+    data class OnToggleFilterSection(val section: FilterSection) : RoomEvent()
+
+    // Generate Screen Events
+    data class SetImage(val imageDetails: GalleryPhotoResult) : RoomEvent()
+    data class OnPageChange(val page: Int) : RoomEvent()
+    object OnNextPage : RoomEvent()
+    object OnPreviousPage : RoomEvent()
+    data class OnRoomTypeSelected(val roomType: String) : RoomEvent()
+    data class OnRoomSearchQueryChange(val query: String) : RoomEvent()
+    data class OnRoomSearchExpandedChange(val isExpanded: Boolean) : RoomEvent()
+    data class OnStyleSelected(val styleId: Int) : RoomEvent()
+    data class OnStyleSearchQueryChange(val query: String) : RoomEvent()
+    data class OnStyleSearchExpandedChange(val isExpanded: Boolean) : RoomEvent()
+    data class OnPaletteSelected(val paletteId: Int) : RoomEvent()
+    object OnGenerateClick : RoomEvent()
+    object OnGenerationComplete : RoomEvent()
 }

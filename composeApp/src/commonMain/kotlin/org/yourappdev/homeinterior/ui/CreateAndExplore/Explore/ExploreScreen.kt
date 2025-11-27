@@ -20,21 +20,17 @@ import androidx.compose.material3.*
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
-import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
-import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
+import androidx.compose.ui.graphics.Brush
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import homeinterior.composeapp.generated.resources.Res
 import homeinterior.composeapp.generated.resources.filter
-import homeinterior.composeapp.generated.resources.sofa
-import homeinterior.composeapp.generated.resources.sofa_2
-import homeinterior.composeapp.generated.resources.sofa_3
 import org.jetbrains.compose.resources.painterResource
 import org.jetbrains.compose.resources.DrawableResource
 import androidx.compose.ui.layout.ContentScale
@@ -47,22 +43,17 @@ import coil3.request.ImageRequest
 import coil3.request.crossfade
 import homeinterior.composeapp.generated.resources.roomplaceholder
 import org.koin.compose.viewmodel.koinViewModel
-import org.yourappdev.homeinterior.domain.model.Room
+import org.yourappdev.homeinterior.data.remote.util.ResultState
+import org.yourappdev.homeinterior.domain.model.RoomUi
 import org.yourappdev.homeinterior.ui.CreateAndExplore.Create.shimmerLoading
 import org.yourappdev.homeinterior.ui.CreateAndExplore.RoomEvent
 import org.yourappdev.homeinterior.ui.CreateAndExplore.RoomsViewModel
 import org.yourappdev.homeinterior.ui.theme.fieldBack
-import kotlin.random.Random
 
-data class ImageItem(
-    val imageRes: DrawableResource,
-    val height: Int, // Dynamic height multiplier
-    val colors: List<Color>
-)
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
-fun ExploreScreen(viewModel: RoomsViewModel = koinViewModel(),onRoomClick: (Room) -> Unit={}) {
+fun ExploreScreen(viewModel: RoomsViewModel = koinViewModel(), onRoomClick: (RoomUi) -> Unit = {}) {
     val state by viewModel.state.collectAsState()
     val sheetState = rememberModalBottomSheetState(skipPartiallyExpanded = true)
 
@@ -162,13 +153,13 @@ fun ExploreScreen(viewModel: RoomsViewModel = koinViewModel(),onRoomClick: (Room
 
             // Vertical Staggered Grid
             AnimatedContent(
-                targetState = state.isLoading to state.filteredRooms.isEmpty(),
+                targetState = state.getRoomsResponse to state.filteredRooms.isEmpty(),
                 transitionSpec = {
                     fadeIn() togetherWith fadeOut()
                 }
             ) { (loading, isEmpty) ->
                 when {
-                    loading -> ExploreGridShimmer()
+                    loading is ResultState.Loading -> ExploreGridShimmer()
                     isEmpty -> EmptyRoomsMessage()
                     else -> ExploreGrid(
                         rooms = state.filteredRooms,
@@ -189,18 +180,37 @@ fun ExploreScreen(viewModel: RoomsViewModel = koinViewModel(),onRoomClick: (Room
                 modifier = Modifier.statusBarsPadding()
             ) {
                 FilterBottomSheetContent(
-                    initialFilterState = state.filterState,
-                    onApplyFilters = { filters ->
-                        viewModel.onRoomEvent(RoomEvent.OnApplyFilters(filters))
+                    filterState = state.tempFilterState,
+                    filterCount = state.tempFilterCount,
+                    expandedRoomType = state.expandedRoomType,
+                    expandedStyle = state.expandedStyle,
+                    expandedColor = state.expandedColor,
+                    expandedFormat = state.expandedFormat,
+                    expandedPrice = state.expandedPrice,
+                    onFilterStateChange = {
+                        viewModel.onRoomEvent(RoomEvent.OnTempFilterChange(it))
+                    },
+                    onToggleSection = { section ->
+                        viewModel.onRoomEvent(RoomEvent.OnToggleFilterSection(section))
+                    },
+                    onApplyFilters = {
+                        viewModel.onRoomEvent(RoomEvent.OnApplyFilters)
                     },
                     onCancel = {
                         viewModel.onRoomEvent(RoomEvent.OnDismissFilterSheet)
-                    }
+                    },
+                    onClearAll = {
+                        viewModel.onRoomEvent(RoomEvent.OnClearFilters)
+                    },
+                    availableRoomTypes = state.availableRoomTypes,
+                    availableStyles = state.availableStylesString,
+                    availableColors = state.availableColors
                 )
             }
         }
     }
 }
+
 @Composable
 private fun EmptyRoomsMessage() {
     Box(
@@ -219,13 +229,13 @@ private fun EmptyRoomsMessage() {
 
 @Composable
 private fun ExploreGrid(
-    rooms: List<Room>,
-    onRoomClick: (Room) -> Unit
+    rooms: List<RoomUi>,
+    onRoomClick: (RoomUi) -> Unit
 ) {
     LazyVerticalStaggeredGrid(
         columns = StaggeredGridCells.Fixed(2),
         modifier = Modifier.fillMaxSize(),
-        contentPadding = PaddingValues(horizontal = 16.dp, vertical = 8.dp),
+        contentPadding = PaddingValues(horizontal = 24.dp, vertical = 8.dp),
         horizontalArrangement = Arrangement.spacedBy(12.dp),
         verticalItemSpacing = 12.dp
     ) {
@@ -240,50 +250,43 @@ private fun ExploreGrid(
 
 @Composable
 private fun RoomImageCard(
-    room: Room,
+    room: RoomUi,
     onClick: () -> Unit
 ) {
-    // Vary heights for staggered effect (150-280dp range)
-    val height = remember(room.id) {
-        listOf(150, 180, 210, 240, 280).random().dp
-    }
-
     Box(
         modifier = Modifier
             .fillMaxWidth()
-            .height(height)
+            .height(room.cardHeight.dp)
             .clip(RoundedCornerShape(12.dp))
             .clickable { onClick() }
     ) {
         AsyncImage(
             model = ImageRequest.Builder(LocalPlatformContext.current)
-                .data(room.image_url)
+                .data(room.imageUrl)
                 .crossfade(true)
                 .build(),
             placeholder = painterResource(Res.drawable.roomplaceholder),
             error = painterResource(Res.drawable.roomplaceholder),
-            contentDescription = room.room_type,
+            contentDescription = room.roomType,
             modifier = Modifier.fillMaxSize(),
             contentScale = ContentScale.Crop
         )
 
-        // Gradient overlay at bottom
         Box(
             modifier = Modifier
                 .fillMaxWidth()
                 .height(60.dp)
                 .align(Alignment.BottomCenter)
                 .background(
-                    androidx.compose.ui.graphics.Brush.verticalGradient(
+                    Brush.verticalGradient(
                         0.0f to Color.Transparent,
                         1.0f to Color.Black.copy(alpha = 0.6f)
                     )
                 )
         )
 
-        // Room type text
         Text(
-            text = room.room_type,
+            text = room.roomType,
             fontSize = 14.sp,
             fontWeight = FontWeight.SemiBold,
             color = Color.White,
@@ -291,8 +294,18 @@ private fun RoomImageCard(
                 .align(Alignment.BottomStart)
                 .padding(12.dp)
         )
+
+        if (room.colors.isNotEmpty()) {
+            OverlappingColorRow(
+                modifier = Modifier
+                    .align(Alignment.TopEnd)
+                    .padding(top = 8.dp, end = 8.dp),
+                colors = room.colors
+            )
+        }
     }
 }
+
 @Composable
 fun ImageCard(imageRes: DrawableResource, height: Dp, colors: List<Color>) {
     Box(

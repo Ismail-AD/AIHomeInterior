@@ -1,6 +1,5 @@
 package org.yourappdev.homeinterior.ui.CreateAndExplore.Explore
 
-
 import androidx.compose.animation.AnimatedVisibility
 import androidx.compose.animation.core.FastOutSlowInEasing
 import androidx.compose.animation.core.tween
@@ -30,22 +29,28 @@ import homeinterior.composeapp.generated.resources.Res
 import homeinterior.composeapp.generated.resources.keyboard_arrow_down_24px
 import homeinterior.composeapp.generated.resources.keyboard_arrow_up_24px
 import org.jetbrains.compose.resources.painterResource
+import org.yourappdev.homeinterior.ui.CreateAndExplore.FilterSection
 import org.yourappdev.homeinterior.ui.CreateAndExplore.FilterState
-
+import org.yourappdev.homeinterior.ui.Generate.UiScreens.ColorPalette
 
 @Composable
 fun FilterBottomSheetContent(
-    initialFilterState: FilterState = FilterState(),
-    onApplyFilters: (FilterState) -> Unit,
-    onCancel: () -> Unit
+    filterState: FilterState,
+    filterCount: Int,
+    expandedRoomType: Boolean,
+    expandedStyle: Boolean,
+    expandedColor: Boolean,
+    expandedFormat: Boolean,
+    expandedPrice: Boolean,
+    availableRoomTypes: List<String>,
+    availableStyles: List<String>,
+    availableColors: List<ColorPalette>,
+    onFilterStateChange: (FilterState) -> Unit,
+    onToggleSection: (FilterSection) -> Unit,
+    onApplyFilters: () -> Unit,
+    onCancel: () -> Unit,
+    onClearAll: () -> Unit
 ) {
-    var filterState by remember { mutableStateOf(FilterState()) }
-    var expandedRoomType by remember { mutableStateOf(false) }
-    var expandedStyle by remember { mutableStateOf(false) }
-    var expandedColor by remember { mutableStateOf(false) }
-    var expandedFormat by remember { mutableStateOf(false) }
-    var expandedPrice by remember { mutableStateOf(false) }
-
     val primaryGreen = Color(0xFFA3B18A)
     val darkText = Color(0xFF2C2C2C)
     val mediumText = Color(0xFF323232)
@@ -62,7 +67,6 @@ fun FilterBottomSheetContent(
             .background(Color.White)
             .padding(horizontal = 21.dp),
     ) {
-
         stickyHeader {
             Row(
                 modifier = Modifier.fillMaxWidth().background(Color.White)
@@ -78,7 +82,7 @@ fun FilterBottomSheetContent(
                         color = darkText
                     )
                     Text(
-                        text = " (2)",
+                        text = " ($filterCount)",
                         fontSize = 22.sp,
                         fontWeight = FontWeight.SemiBold,
                         color = primaryGreen
@@ -89,25 +93,24 @@ fun FilterBottomSheetContent(
                     fontSize = 14.sp,
                     fontWeight = FontWeight.Normal,
                     color = primaryGreen,
-                    modifier = Modifier.clickable {
-                        filterState = FilterState()
-                    }
+                    modifier = Modifier.clickable { onClearAll() }
                 )
             }
         }
-
 
         item {
             ExpandableFilterSection(
                 title = "Type of Room",
                 expanded = expandedRoomType,
-                onExpandChange = { expandedRoomType = it },
+
+                onExpandChange = { onToggleSection(FilterSection.ROOM_TYPE) },
                 dividerColor = dividerGray,
                 titleColor = mediumText
             ) {
                 RoomTypeOptions(
                     selectedOptions = filterState.selectedRoomTypes,
-                    onOptionsSelected = { filterState = filterState.copy(selectedRoomTypes = it) },
+                    availableOptions = availableRoomTypes,
+                    onOptionsSelected = { onFilterStateChange(filterState.copy(selectedRoomTypes = it)) },
                     primaryGreen = primaryGreen,
                     borderGray = borderGray,
                     lightText = lightText
@@ -119,13 +122,14 @@ fun FilterBottomSheetContent(
             ExpandableFilterSection(
                 title = "Style",
                 expanded = expandedStyle,
-                onExpandChange = { expandedStyle = it },
+                onExpandChange = { onToggleSection(FilterSection.STYLE) },
                 dividerColor = dividerGray,
                 titleColor = mediumText
             ) {
                 StyleOptions(
                     selectedOptions = filterState.selectedStyles,
-                    onOptionsSelected = { filterState = filterState.copy(selectedStyles = it) },
+                    availableStyles = availableStyles,
+                    onOptionsSelected = { onFilterStateChange(filterState.copy(selectedStyles = it)) },
                     primaryGreen = primaryGreen,
                     borderGray = borderGray,
                     lightText = lightText
@@ -137,13 +141,14 @@ fun FilterBottomSheetContent(
             ExpandableFilterSection(
                 title = "Colour",
                 expanded = expandedColor,
-                onExpandChange = { expandedColor = it },
+                onExpandChange = { onToggleSection(FilterSection.COLOR) },
                 dividerColor = dividerGray,
                 titleColor = mediumText
             ) {
                 ColorOptions(
-                    selectedColorIndices = filterState.selectedColors,
-                    onColorSelected = { filterState = filterState.copy(selectedColors = it) },
+                    selectedPaletteIds = filterState.selectedColors, // Changed parameter name
+                    availablePalettes = availableColors, // Pass dynamic data
+                    onPalettesSelected = { onFilterStateChange(filterState.copy(selectedColors = it)) },
                     primaryGreen = primaryGreen
                 )
             }
@@ -153,13 +158,13 @@ fun FilterBottomSheetContent(
             ExpandableFilterSection(
                 title = "By Format",
                 expanded = expandedFormat,
-                onExpandChange = { expandedFormat = it },
+                onExpandChange = { onToggleSection(FilterSection.FORMAT) },
                 dividerColor = dividerGray,
                 titleColor = mediumText
             ) {
                 FormatOptions(
                     selectedOptions = filterState.selectedFormats,
-                    onOptionsSelected = { filterState = filterState.copy(selectedFormats = it) },
+                    onOptionsSelected = { onFilterStateChange(filterState.copy(selectedFormats = it)) },
                     primaryGreen = primaryGreen,
                     borderGray = borderGray,
                     lightText = lightText
@@ -171,13 +176,13 @@ fun FilterBottomSheetContent(
             ExpandableFilterSection(
                 title = "Price",
                 expanded = expandedPrice,
-                onExpandChange = { expandedPrice = it },
+                onExpandChange = { onToggleSection(FilterSection.PRICE) },
                 dividerColor = dividerGray,
                 titleColor = mediumText
             ) {
                 PriceOptions(
                     selectedOptions = filterState.selectedPrices,
-                    onOptionsSelected = { filterState = filterState.copy(selectedPrices = it) },
+                    onOptionsSelected = { onFilterStateChange(filterState.copy(selectedPrices = it)) },
                     primaryGreen = primaryGreen,
                     borderGray = borderGray,
                     lightText = lightText
@@ -191,12 +196,10 @@ fun FilterBottomSheetContent(
                 horizontalArrangement = Arrangement.End
             ) {
                 Button(
-                    onClick = { onApplyFilters(filterState) },
+                    onClick = onApplyFilters,
                     modifier = Modifier.padding(end = 10.dp),
                     shape = RoundedCornerShape(7.dp),
-                    colors = ButtonDefaults.buttonColors(
-                        containerColor = primaryGreen
-                    ),
+                    colors = ButtonDefaults.buttonColors(containerColor = primaryGreen),
                 ) {
                     Text(
                         text = "Apply Filters",
@@ -211,9 +214,7 @@ fun FilterBottomSheetContent(
                 OutlinedButton(
                     onClick = onCancel,
                     shape = RoundedCornerShape(7.dp),
-                    colors = ButtonDefaults.outlinedButtonColors(
-                        containerColor = Color.White
-                    ),
+                    colors = ButtonDefaults.outlinedButtonColors(containerColor = Color.White),
                     border = BorderStroke(1.dp, cancelBorderColor),
                 ) {
                     Text(
@@ -349,18 +350,13 @@ fun RadioOption(
 @Composable
 fun RoomTypeOptions(
     selectedOptions: Set<String>,
+    availableOptions: List<String>, // Add this parameter
     onOptionsSelected: (Set<String>) -> Unit,
     primaryGreen: Color,
     borderGray: Color,
     lightText: Color
 ) {
-    val allOptions = listOf(
-        "All", "Bedroom", "Living Room", "TV Lounge", "Drawing Room", "Dining Room",
-        "Loft", "Guest Bedroom", "Home Theater Room", "Pantry / Store Room",
-        "Utility Room", "Kids' Bedroom", "Nursery", "Study Room", "Home Office",
-        "Bathroom", "Powder Room", "Balcony", "Terrace", "Patio", "Prayer Room",
-        "Kitchen", "Garage", "Home Gym", "Walk-in Closet", "Basement", "Foyer/Entrance Hall"
-    )
+    val allOptions = listOf("All") + availableOptions
     val optionsWithoutAll = allOptions.filter { it != "All" }
 
 
@@ -419,16 +415,13 @@ fun RoomTypeOptions(
 @Composable
 fun StyleOptions(
     selectedOptions: Set<String>,
+    availableStyles: List<String>,
     onOptionsSelected: (Set<String>) -> Unit,
     primaryGreen: Color,
     borderGray: Color,
     lightText: Color
 ) {
-    val allOptions = listOf(
-        "All", "Modern", "Contemporary", "Minimalist", "Scandinavian", "Japanese",
-        "Boho Chic", "Industrial", "Luxury", "Classic", "Mid-Century", "Urban Modern",
-        "Rustic Modern", "Eco-Friendly", "Coastal"
-    )
+    val allOptions = listOf("All") + availableStyles
     val optionsWithoutAll = allOptions.filter { it != "All" }
 
     FlowRow(
@@ -485,34 +478,12 @@ fun StyleOptions(
 
 @Composable
 fun ColorOptions(
-    selectedColorIndices: Set<Int>,
-    onColorSelected: (Set<Int>) -> Unit,
+    selectedPaletteIds: Set<Int>, // Changed to palette IDs
+    availablePalettes: List<ColorPalette>, // Add this parameter
+    onPalettesSelected: (Set<Int>) -> Unit, // Changed to IDs
     primaryGreen: Color
 ) {
-    val colorLists = listOf(
-        listOf("Neutral Tones", listOf(
-            Color(0xFFFFFFFF), Color(0xFFF5F5DC), Color(0xFFD3D3D3),
-            Color(0xFFC0C0C0), Color(0xFF808080)
-        )),
-        listOf("Earth Tones", listOf(
-            Color(0xFF8B4513), Color(0xFFA0522D), Color(0xFFCD853F),
-            Color(0xFFDEB887), Color(0xFFD2691E)
-        )),
-        listOf("Cool Blues", listOf(
-            Color(0xFF87CEEB), Color(0xFF4682B4), Color(0xFF1E90FF),
-            Color(0xFF4169E1), Color(0xFF000080)
-        )),
-        listOf("Warm Reds", listOf(
-            Color(0xFFFFB6C1), Color(0xFFFF69B4), Color(0xFFDC143C),
-            Color(0xFFB22222), Color(0xFF8B0000)
-        )),
-        listOf("Fresh Greens", listOf(
-            Color(0xFF90EE90), Color(0xFF32CD32), Color(0xFF228B22),
-            Color(0xFF006400), Color(0xFF556B2F)
-        ))
-    )
 
-    var flatColorIndex = 0
 
     Column(
         modifier = Modifier
@@ -520,32 +491,30 @@ fun ColorOptions(
             .padding(start = 10.dp, end = 10.dp, bottom = 18.dp),
         verticalArrangement = Arrangement.spacedBy(12.dp)
     ) {
-        colorLists.forEach { (title, colors) ->
-            val listStartIndex = flatColorIndex
-            val listIndices = (listStartIndex until listStartIndex + (colors as List<Color>).size).toSet()
-            val isListSelected = listIndices.all { selectedColorIndices.contains(it) }
+        availablePalettes.forEach { palette ->
+            val isSelected = selectedPaletteIds.contains(palette.id)
 
             Column(
                 modifier = Modifier
                     .fillMaxWidth()
                     .border(
-                        width = if (isListSelected) 2.dp else 1.dp,
-                        color = if (isListSelected) primaryGreen else Color(0xFFE5E5E5),
+                        width = if (isSelected) 2.dp else 1.dp,
+                        color = if (isSelected) primaryGreen else Color(0xFFE5E5E5),
                         shape = RoundedCornerShape(8.dp)
                     )
                     .clip(RoundedCornerShape(8.dp))
                     .clickable {
-                        val newSelection = if (isListSelected) {
-                            selectedColorIndices - listIndices
+                        val newSelection = if (isSelected) {
+                            selectedPaletteIds - palette.id
                         } else {
-                            selectedColorIndices + listIndices
+                            selectedPaletteIds + palette.id
                         }
-                        onColorSelected(newSelection)
+                        onPalettesSelected(newSelection)
                     }
                     .padding(12.dp)
             ) {
                 Text(
-                    text = title as String,
+                    text = "Palette ${palette.id}",
                     fontSize = 13.sp,
                     fontWeight = FontWeight.Medium,
                     color = Color(0xFF4D4D4D),
@@ -556,7 +525,7 @@ fun ColorOptions(
                     modifier = Modifier.fillMaxWidth(),
                     horizontalArrangement = Arrangement.spacedBy(10.dp)
                 ) {
-                    colors.forEach { color ->
+                    palette.colors.forEach { color ->
                         Box(
                             modifier = Modifier
                                 .size(36.dp)
@@ -568,7 +537,6 @@ fun ColorOptions(
                                 .padding(2.dp)
                                 .background(color, CircleShape)
                         )
-                        flatColorIndex++
                     }
                 }
             }

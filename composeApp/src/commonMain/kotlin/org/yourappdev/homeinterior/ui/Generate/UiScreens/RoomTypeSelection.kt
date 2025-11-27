@@ -1,13 +1,13 @@
-package org.yourappdev.homeinterior.ui.Generate
+package org.yourappdev.homeinterior.ui.Generate.UiScreens
 
 
+import androidx.compose.animation.AnimatedContent
 import androidx.compose.animation.AnimatedVisibility
-import androidx.compose.animation.core.animateFloatAsState
-import androidx.compose.animation.core.tween
 import androidx.compose.animation.expandHorizontally
 import androidx.compose.animation.fadeIn
 import androidx.compose.animation.fadeOut
 import androidx.compose.animation.shrinkHorizontally
+import androidx.compose.animation.togetherWith
 import androidx.compose.foundation.Image
 import androidx.compose.foundation.background
 import androidx.compose.foundation.border
@@ -28,6 +28,7 @@ import androidx.compose.ui.draw.clip
 import androidx.compose.ui.graphics.Brush
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.ColorFilter
+import androidx.compose.ui.text.TextStyle
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.input.VisualTransformation
 import androidx.compose.ui.unit.dp
@@ -40,37 +41,24 @@ import org.yourappdev.homeinterior.ui.theme.fieldBack
 
 
 @Composable
-fun RoomTypeSelection() {
+fun RoomTypeSelection(
+    roomTypes: List<String>,
+    selectedRoomType: String?,
+    searchQuery: String,
+    isSearchExpanded: Boolean,
+    onRoomTypeSelected: (String) -> Unit,
+    onSearchQueryChange: (String) -> Unit,
+    onSearchExpandedChange: (Boolean) -> Unit
+) {
     val listState = rememberLazyListState()
-    var selectedRoom by remember { mutableStateOf("Bedroom") }
-    val roomTypes = listOf(
-        "Bedroom",
-        "Living Room",
-        "TV Lounge",
-        "Drawing Room",
-        "Dining Room",
-        "Foyer/Entrance Hall",
-        "Guest Bedroom",
-        "Kitchen",
-        "Pantry / Store Room",
-        "Utility Room",
-        "Kids' Bedroom",
-        "Nursery",
-        "Study Room",
-        "Home Office",
-        "Bathroom",
-        "Powder Room",
-        "Balcony",
-        "Terrace",
-        "Patio",
-        "Prayer Room",
-        "Home Gym",
-        "Walk-in Closet",
-        "Home Theater",
-        "Basement",
-        "Loft",
-        "Garage"
-    )
+
+    val filteredRoomTypes = remember(roomTypes, searchQuery) {
+        if (searchQuery.isBlank()) {
+            roomTypes
+        } else {
+            roomTypes.filter { it.contains(searchQuery, ignoreCase = true) }
+        }
+    }
 
     val isLastItemVisible by remember {
         derivedStateOf {
@@ -82,7 +70,14 @@ fun RoomTypeSelection() {
         modifier = Modifier
             .fillMaxSize().background(Color.White)
     ) {
-        HeaderWithSearch("Type of Room")
+        HeaderWithSearch(
+            title = "Type of Room",
+            searchText = searchQuery,
+            isSearchExpanded = isSearchExpanded,
+            onSearchTextChange = onSearchQueryChange,
+            onSearchExpandedChange = onSearchExpandedChange
+        )
+
 
         Spacer(modifier = Modifier.height(12.dp))
 
@@ -94,14 +89,14 @@ fun RoomTypeSelection() {
                 modifier = Modifier.fillMaxSize(),
                 contentPadding = PaddingValues(start = 24.dp, end = 24.dp, bottom = 90.dp)
             ) {
-                items(roomTypes) { roomType ->
+                items(filteredRoomTypes) { roomType ->
                     RoomTypeItem(
                         roomName = roomType,
-                        isSelected = roomType == selectedRoom,
-                        onClick = { selectedRoom = roomType }
+                        isSelected = roomType == selectedRoomType,
+                        onClick = { onRoomTypeSelected(roomType) }
                     )
 
-                    if (roomType != roomTypes.last()) {
+                    if (roomType != filteredRoomTypes.last()) {
                         Divider(
                             color = Color(0xFFDBDBDB),
                             thickness = 0.5.dp
@@ -109,14 +104,15 @@ fun RoomTypeSelection() {
                     }
                 }
             }
-            androidx.compose.animation.AnimatedVisibility(
-                visible = !isLastItemVisible,
-                enter = fadeIn(),
-                exit = fadeOut(),
+            AnimatedContent(
+                transitionSpec = {
+                    fadeIn() togetherWith fadeOut()
+                },
+                targetState = !isLastItemVisible,
                 modifier = Modifier
                     .fillMaxWidth()
                     .height(311.dp)
-                    .align(Alignment.BottomCenter)
+                    .align(Alignment.BottomCenter),
             ) {
                 Box(
                     modifier = Modifier
@@ -140,9 +136,13 @@ fun RoomTypeSelection() {
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
-fun HeaderWithSearch(title: String) {
-    var isSearchExpanded by remember { mutableStateOf(false) }
-    var searchText by remember { mutableStateOf("") }
+fun HeaderWithSearch(
+    title: String,
+    searchText: String,
+    isSearchExpanded: Boolean,
+    onSearchTextChange: (String) -> Unit,
+    onSearchExpandedChange: (Boolean) -> Unit
+) {
     Row(
         modifier = Modifier
             .fillMaxWidth()
@@ -175,15 +175,15 @@ fun HeaderWithSearch(title: String) {
                 .background(if (isSearchExpanded) fieldBack else Color(0xFFF7F7F7))
                 .clickable(
                     enabled = !isSearchExpanded,
-                    onClick = { isSearchExpanded = true }
+                    onClick = { onSearchExpandedChange(true) }
                 ),
             contentAlignment = if (isSearchExpanded) Alignment.CenterStart else Alignment.Center
         ) {
             if (isSearchExpanded) {
                 BasicTextField(
                     value = searchText,
-                    onValueChange = { searchText = it },
-                    textStyle = androidx.compose.ui.text.TextStyle(
+                    onValueChange = { onSearchTextChange(it) },
+                    textStyle = TextStyle(
                         fontSize = 16.sp,
                         fontWeight = FontWeight.Normal,
                         letterSpacing = 0.16.sp,
@@ -208,8 +208,8 @@ fun HeaderWithSearch(title: String) {
                                 modifier = Modifier
                                     .size(18.dp)
                                     .clickable {
-                                        searchText = ""
-                                        isSearchExpanded = false
+                                        onSearchTextChange("")
+                                        onSearchExpandedChange(false)
                                     },
                                 colorFilter = ColorFilter.tint(color = Color(0xFFA0A0A0))
                             )

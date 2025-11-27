@@ -1,20 +1,15 @@
-package org.yourappdev.homeinterior.ui.Generate
+package org.yourappdev.homeinterior.ui.Generate.UiScreens
 
 import androidx.compose.animation.animateColorAsState
-import androidx.compose.animation.animateContentSize
-import androidx.compose.animation.core.Spring
-import androidx.compose.animation.core.spring
 import androidx.compose.animation.core.tween
 import androidx.compose.foundation.Image
 import androidx.compose.foundation.background
-import androidx.compose.foundation.border
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.Spacer
-import androidx.compose.foundation.layout.aspectRatio
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
@@ -27,47 +22,41 @@ import androidx.compose.foundation.pager.HorizontalPager
 import androidx.compose.foundation.pager.rememberPagerState
 import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.shape.RoundedCornerShape
-import androidx.compose.material3.Button
-import androidx.compose.material3.ButtonDefaults
 import androidx.compose.material3.Scaffold
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.LaunchedEffect
+import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
-import androidx.compose.runtime.remember
 import androidx.compose.runtime.rememberCoroutineScope
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.ColorFilter
-import androidx.compose.ui.layout.ContentScale
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import homeinterior.composeapp.generated.resources.Res
 import homeinterior.composeapp.generated.resources.arrow_back_
 import homeinterior.composeapp.generated.resources.close
-import homeinterior.composeapp.generated.resources.sofa
 import kotlinx.coroutines.launch
 import org.jetbrains.compose.resources.painterResource
+import org.yourappdev.homeinterior.ui.CreateAndExplore.RoomEvent
+import org.yourappdev.homeinterior.ui.CreateAndExplore.RoomsViewModel
 import org.yourappdev.homeinterior.ui.Files.ProBadge
 import org.yourappdev.homeinterior.ui.UiUtils.CommonAppButton
 
 @Composable
-fun BaseAddScreen(endToNext: () -> Unit, onCloseClick: () -> Unit = {}) {
-    val state = rememberPagerState(pageCount = { 4 })
+fun BaseGenerateScreen(roomsViewModel: RoomsViewModel, endToNext: () -> Unit, onCloseClick: () -> Unit = {}) {
+    val state by roomsViewModel.state.collectAsState()
+    val pagerState = rememberPagerState(pageCount = { state.pageCount })
     val scope = rememberCoroutineScope()
-    val currentPage = state.currentPage
-    val targetPage = state.targetPage
-    val pageOffset = state.currentPageOffsetFraction
-    val gradientColors = remember {
-        listOf(
-            Color(0xFFC5EBB2),
-            Color(0xFFDFF2C2),
-            Color(0xFFC1DFB5),
-            Color(0xFFD2F7BD)
-        )
+
+    LaunchedEffect(state.currentPage) {
+        pagerState.animateScrollToPage(state.currentPage)
     }
+
     Scaffold(
         modifier = Modifier
             .fillMaxSize()
@@ -79,8 +68,8 @@ fun BaseAddScreen(endToNext: () -> Unit, onCloseClick: () -> Unit = {}) {
                         .fillMaxWidth(0.6f)
                 ) {
                     scope.launch {
-                        if (currentPage < 3) {
-                            state.animateScrollToPage(page = state.currentPage + 1)
+                        if (state.currentPage < state.pageCount - 1) {
+                            roomsViewModel.onRoomEvent(RoomEvent.OnNextPage)
                         } else {
                             endToNext()
                         }
@@ -96,40 +85,79 @@ fun BaseAddScreen(endToNext: () -> Unit, onCloseClick: () -> Unit = {}) {
                 .fillMaxSize().background(Color.White)
         ) {
 
-            TopNavigationBar(gradientColors, state.currentPage, onCloseClick = {
-                onCloseClick()
-            }) {
-                scope.launch {
-                    state.animateScrollToPage(page = state.currentPage - 1)
-                }
+            TopNavigationBar(
+                gradientColors = listOf(
+                    Color(0xFFC5EBB2),
+                    Color(0xFFDFF2C2),
+                    Color(0xFFC1DFB5),
+                    Color(0xFFD2F7BD)
+                ),
+                currentPage = state.currentPage,
+                onCloseClick = onCloseClick
+            ) {
+                roomsViewModel.onRoomEvent(RoomEvent.OnPreviousPage)
             }
 
             Spacer(modifier = Modifier.height(24.dp))
 
             ProgressIndicator(
-                state.pageCount,
-                currentPage = currentPage,
-                targetPage = targetPage,
-                pageOffset = pageOffset.coerceIn(0f, 1f)
+                pageCount = state.pageCount,
+                currentPage = pagerState.currentPage,
+                targetPage = pagerState.targetPage,
+                pageOffset = pagerState.currentPageOffsetFraction.coerceIn(0f, 1f)
             )
 
             Spacer(modifier = Modifier.height(20.dp))
-            HorizontalPager(state = state, userScrollEnabled = false) { page ->
+            HorizontalPager(state = pagerState, userScrollEnabled = false) { page ->
                 when (page) {
                     0 -> {
-                        FirstPage()
+                        FirstPage(state.selectedImage?.uri)
                     }
 
                     1 -> {
-                        RoomTypeSelection()
+                        RoomTypeSelection(
+                            roomTypes = state.availableRoomTypes,
+                            selectedRoomType = state.selectedRoomType,
+                            searchQuery = state.roomSearchQuery,
+                            isSearchExpanded = state.isRoomSearchExpanded,
+                            onRoomTypeSelected = { roomtype ->
+                                roomsViewModel.onRoomEvent(RoomEvent.OnRoomTypeSelected(roomtype))
+                            },
+                            onSearchQueryChange = { query ->
+                                roomsViewModel.onRoomEvent(RoomEvent.OnRoomSearchQueryChange(query))
+                            },
+                            onSearchExpandedChange = { updatedChange ->
+                                roomsViewModel.onRoomEvent(RoomEvent.OnRoomSearchExpandedChange(updatedChange))
+                            },
+                        )
                     }
 
                     2 -> {
-                        StyleSelectionScreen()
+                        StyleSelectionScreen(
+                            styles = state.availableStyles,
+                            selectedStyleId = state.selectedStyleId,
+                            searchQuery = state.styleSearchQuery,
+                            isSearchExpanded = state.isStyleSearchExpanded,
+                            onStyleSelected = { style ->
+                                roomsViewModel.onRoomEvent(RoomEvent.OnStyleSelected(style))
+                            },
+                            onSearchQueryChange = { query ->
+                                roomsViewModel.onRoomEvent(RoomEvent.OnStyleSearchQueryChange(query))
+                            },
+                            onSearchExpandedChange = { expanded ->
+                                roomsViewModel.onRoomEvent(RoomEvent.OnStyleSearchExpandedChange(expanded))
+                            }
+                        )
                     }
 
                     3 -> {
-                        ColorPaletteSelectionScreen()
+                        ColorPaletteSelectionScreen(
+                            palettes = state.availableColors,
+                            selectedPaletteId = state.selectedPaletteId,
+                            onPaletteSelected = {
+                                roomsViewModel.onRoomEvent(RoomEvent.OnPaletteSelected(it))
+                            }
+                        )
                     }
 
                 }

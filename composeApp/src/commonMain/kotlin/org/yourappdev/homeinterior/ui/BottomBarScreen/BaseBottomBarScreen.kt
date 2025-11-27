@@ -15,7 +15,9 @@ import androidx.compose.material3.FloatingActionButtonDefaults
 import androidx.compose.material3.Scaffold
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.getValue
+import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
+import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.innerShadow
@@ -29,6 +31,8 @@ import androidx.navigation.compose.composable
 import androidx.navigation.compose.currentBackStackEntryAsState
 import androidx.navigation.compose.rememberNavController
 import homeinterior.composeapp.generated.resources.*
+import io.github.ismoy.imagepickerkmp.domain.models.GalleryPhotoResult
+import io.github.ismoy.imagepickerkmp.presentation.ui.components.GalleryPickerLauncher
 import org.jetbrains.compose.resources.painterResource
 import org.jetbrains.compose.resources.stringResource
 import org.koin.compose.viewmodel.koinViewModel
@@ -38,12 +42,13 @@ import org.yourappdev.homeinterior.ui.Account.ProfileScreen
 import org.yourappdev.homeinterior.ui.Account.SubscriptionScreen
 import org.yourappdev.homeinterior.ui.CreateAndExplore.Create.CreateScreen
 import org.yourappdev.homeinterior.ui.CreateAndExplore.Explore.ExploreScreen
+import org.yourappdev.homeinterior.ui.CreateAndExplore.RoomEvent
 import org.yourappdev.homeinterior.ui.CreateAndExplore.RoomsViewModel
 import org.yourappdev.homeinterior.ui.Files.CreateEditScreen
 import org.yourappdev.homeinterior.ui.Files.FilesScreen
-import org.yourappdev.homeinterior.ui.Generate.AboutToGenerateScreen
-import org.yourappdev.homeinterior.ui.Generate.BaseAddScreen
-import org.yourappdev.homeinterior.ui.Generate.ResultScreen
+import org.yourappdev.homeinterior.ui.Generate.UiScreens.AboutToGenerateScreen
+import org.yourappdev.homeinterior.ui.Generate.UiScreens.BaseGenerateScreen
+import org.yourappdev.homeinterior.ui.Generate.UiScreens.ResultScreen
 import org.yourappdev.homeinterior.ui.UiUtils.*
 import org.yourappdev.homeinterior.ui.theme.bottomBarBack
 import org.yourappdev.homeinterior.ui.theme.selectedNavItem
@@ -57,7 +62,7 @@ fun BaseBottomBarScreen() {
     val currentDestination = navBackStackEntry?.destination
     val roomViewModel: RoomsViewModel =
         koinViewModel()
-
+    var showGallery by remember { mutableStateOf(false) }
 
     val shouldShowBottomBar = currentDestination?.route?.let { route ->
         route.contains("Create") ||
@@ -97,7 +102,9 @@ fun BaseBottomBarScreen() {
                     SlippyTab(
                         name = "",
                         icon = painterResource(Res.drawable.createiconfinal),
-                        action = {} // Placeholder for FAB
+                        action = {
+                            showGallery = true
+                        } // Placeholder for FAB
                     ),
                     SlippyTab(
                         name = stringResource(Res.string.tabThreeFiles),
@@ -233,9 +240,9 @@ fun BaseBottomBarScreen() {
                 )
             }
 
-            // Modal/Full screen destinations
             composable<Routes.AddScreen> {
-                BaseAddScreen(
+                BaseGenerateScreen(
+                    roomViewModel,
                     endToNext = {
                         navController.navigate(Routes.AbtToGenerate)
                     },
@@ -287,6 +294,18 @@ fun BaseBottomBarScreen() {
                     }
                 )
             }
+        }
+        if (showGallery) {
+            GalleryPickerLauncher(
+                onPhotosSelected = { photos ->
+                    roomViewModel.onRoomEvent(RoomEvent.SetImage(imageDetails = photos.first()))
+                    showGallery = false
+                },
+                onError = { showGallery = false },
+                onDismiss = { showGallery = false },
+                allowMultiple = false,
+                selectionLimit = 1
+            )
         }
     }
 }

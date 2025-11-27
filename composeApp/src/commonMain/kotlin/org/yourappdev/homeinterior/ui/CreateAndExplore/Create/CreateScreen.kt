@@ -52,7 +52,7 @@ import homeinterior.composeapp.generated.resources.roomplaceholder
 import org.jetbrains.compose.resources.painterResource
 import org.koin.compose.viewmodel.koinViewModel
 import org.yourappdev.homeinterior.data.remote.BASE_URL
-import org.yourappdev.homeinterior.domain.model.Room
+import org.yourappdev.homeinterior.domain.model.RoomUi
 import org.yourappdev.homeinterior.ui.CreateAndExplore.RoomsViewModel
 import org.yourappdev.homeinterior.utils.Constants
 
@@ -62,7 +62,7 @@ fun CreateScreen(
     viewModel: RoomsViewModel = koinViewModel(),
     onPremiumClick: () -> Unit = {},
     onAddPhotoClick: () -> Unit = {},
-    onRoomClick: (Room) -> Unit = {}
+    onRoomClick: (RoomUi) -> Unit = {}
 ) {
     val state by viewModel.state.collectAsState()
     val scrollState = rememberScrollState()
@@ -157,7 +157,7 @@ private fun EmptyStateCard(onClick: () -> Unit) {
 }
 
 @Composable
-private fun TrendingSection(rooms: List<Room>, onRoomClick: (Room) -> Unit) {
+private fun TrendingSection(rooms: List<RoomUi>, onRoomClick: (RoomUi) -> Unit) {
     Column {
         Text(
             text = "Trending",
@@ -189,8 +189,8 @@ private fun TrendingSection(rooms: List<Room>, onRoomClick: (Room) -> Unit) {
 
 @Composable
 private fun TrendingGrid(
-    rooms: List<Room>,
-    onRoomClick: (Room) -> Unit
+    rooms: List<RoomUi>,
+    onRoomClick: (RoomUi) -> Unit
 ) {
     LazyRow(
         horizontalArrangement = Arrangement.spacedBy(8.dp),
@@ -230,7 +230,7 @@ private fun TrendingGrid(
 
 @Composable
 private fun RoomCategoryCard(
-    room: Room,
+    room: RoomUi,
     height: androidx.compose.ui.unit.Dp,
     onClick: () -> Unit
 ) {
@@ -242,17 +242,14 @@ private fun RoomCategoryCard(
             .background(Color(0xFFE8E8E8))
             .clickable { onClick() }
     ) {
-        Logger.i("CHECKIMAFE") {
-            room.image_url
-        }
         AsyncImage(
             model = ImageRequest.Builder(LocalPlatformContext.current)
-                .data(room.image_url)
+                .data(room.imageUrl)
                 .crossfade(true)
                 .build(),
             placeholder = painterResource(Res.drawable.roomplaceholder),
             error = painterResource(Res.drawable.roomplaceholder),
-            contentDescription = room.room_type,
+            contentDescription = room.roomType,
             modifier = Modifier.fillMaxSize(),
             contentScale = ContentScale.Crop
         )
@@ -271,7 +268,7 @@ private fun RoomCategoryCard(
                 )
         )
         Text(
-            text = room.room_type,
+            text = room.roomType,
             fontSize = 14.sp,
             fontWeight = FontWeight.Bold,
             color = Color.White,

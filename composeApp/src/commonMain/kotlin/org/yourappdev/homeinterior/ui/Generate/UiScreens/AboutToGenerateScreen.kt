@@ -1,10 +1,10 @@
-package org.yourappdev.homeinterior.ui.Generate
+package org.yourappdev.homeinterior.ui.Generate.UiScreens
 
 
+import androidx.compose.foundation.BorderStroke
 import androidx.compose.foundation.Image
 import androidx.compose.foundation.background
 import androidx.compose.foundation.border
-import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.shape.RoundedCornerShape
@@ -21,17 +21,13 @@ import androidx.compose.ui.draw.clip
 import androidx.compose.ui.draw.shadow
 import androidx.compose.ui.graphics.Brush
 import androidx.compose.ui.graphics.Color
-import androidx.compose.ui.graphics.ColorFilter
 import androidx.compose.ui.layout.ContentScale
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import homeinterior.composeapp.generated.resources.Res
-import homeinterior.composeapp.generated.resources.close
-import homeinterior.composeapp.generated.resources.deletenew
 import homeinterior.composeapp.generated.resources.edit_icon
 import homeinterior.composeapp.generated.resources.generate
-import homeinterior.composeapp.generated.resources.premiumicon
 import homeinterior.composeapp.generated.resources.sofa
 import kotlinx.coroutines.delay
 import org.jetbrains.compose.resources.painterResource
@@ -315,7 +311,7 @@ private fun GenerateButton(modifier: Modifier = Modifier, onGenerateClick: () ->
             containerColor = Color.Transparent
         ),
         contentPadding = PaddingValues(0.dp),
-        border = androidx.compose.foundation.BorderStroke(
+        border = BorderStroke(
             width = 1.5.dp,
             color = Color(0xFFD2FDB9)
         )
